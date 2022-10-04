@@ -166,6 +166,7 @@ L["Equipment"] = true
 L["Four general sections."] = true
 L["Item category"] = true
 L["Jewelry"] = true
+L["MythicPlus"] = true
 L["One section per item slot."] = true
 L["Only one section."] = true
 L["Please note this filter matchs every item. Any filter with lower priority than this one will have no effect."] = true

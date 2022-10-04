@@ -21,6 +21,18 @@ along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 
 local addonName, addon = ...
 
+local function isMythic(itemLink)
+	local tip = CreateFrame("GameTooltip","Tooltip",nil,"GameTooltipTemplate")
+	tip:SetOwner(UIParent, "ANCHOR_NONE")
+	tip:SetHyperlink(itemLink);
+	tip:Show()
+	for i = 2,2 do--tip:NumLines() do
+	   if(string.find(_G["TooltipTextLeft"..i]:GetText(), "Mythic ")) then
+		  return true
+	   end
+	end
+ end
+
 function addon:SetupDefaultFilters()
 	-- Globals: GetEquipmentSetLocations
 	--<GLOBALS
@@ -46,6 +58,7 @@ function addon:SetupDefaultFilters()
 	local WEAPON = "Weapon" -- GetItemClassInfo(LE_ITEM_CLASS_WEAPON)
 	local ARMOR = "Armor" --GetItemClassInfo(LE_ITEM_CLASS_ARMOR)
 	local KEY = "Key" --GetItemClassInfo(LE_ITEM_CLASS_KEY)
+	local MYTHICPLUS = "MythicPlus" --GetItemClassInfo(Mythicplus)
 	local JEWELRY = L['Jewelry']
 	local EQUIPMENT = L['Equipment']
 	local AMMUNITION = L['Ammunition']
@@ -55,13 +68,14 @@ function addon:SetupDefaultFilters()
 		[QUEST] = 30,
 		[TRADE_GOODS] = 20,
 		[EQUIPMENT] = 10,
+		[MYTHICPLUS] = 0,
 		[CONSUMMABLE] = -10,
 		[MISCELLANEOUS] = -20,
 		[AMMUNITION] = -30,
 		[KEY] = -40,
 		[JUNK] = -50,
 	}
-
+	
 	-- [90] Key
 	do
 		local keyFilter = addon:RegisterFilter('Key', 90, function(self, slotData)
@@ -74,7 +88,7 @@ function addon:SetupDefaultFilters()
 		keyFilter.uiName = KEY
 		keyFilter.uiDesc = L['Put items categorized as keys in their own section.']
 	end
-
+	
 	-- [75] Quest Items
 	do
 		local questItemFilter = addon:RegisterFilter('Quest', 75, function(self, slotData)
@@ -87,7 +101,7 @@ function addon:SetupDefaultFilters()
 		questItemFilter.uiName = L['Quest Items']
 		questItemFilter.uiDesc = L['Put quest-related items in their own section.']
 	end
-
+	
 	-- [60] Equipment
 	do
 		local equipCategories = {
@@ -121,7 +135,7 @@ function addon:SetupDefaultFilters()
 			INVTYPE_WEAPONOFFHAND = WEAPON,
 			INVTYPE_WRIST = ARMOR,
 		}
-
+		
 		local equipmentFilter = addon:RegisterFilter('Equipment', 60, function(self, slotData)
 			local equipSlot = slotData.equipSlot
 			if equipSlot and equipSlot ~= "" then
@@ -140,11 +154,11 @@ function addon:SetupDefaultFilters()
 		end)
 		equipmentFilter.uiName = EQUIPMENT
 		equipmentFilter.uiDesc = L['Put any item that can be equipped (including bags) into the "Equipment" section.']
-
+		
 		function equipmentFilter:OnInitialize()
 			self.db = addon.db:RegisterNamespace('Equipment', { profile = { dispatchRule = 'category', armorTypes = false } })
 		end
-
+		
 		function equipmentFilter:GetOptions()
 			return {
 				dispatchRule = {
@@ -170,13 +184,29 @@ function addon:SetupDefaultFilters()
 		end
 	end
 
+	-- name, 		_, quality, 		iLevel, 		reqLevel, 			class,			 subclass, 			equipSlot, 			texture, 		vendorPrice = GetItemInfo(itemId)
+	-- slotData.name, slotData.quality, slotData.iLevel, slotData.reqLevel, slotData.class, slotData.subclass, slotData.equipSlot, slotData.texture, slotData.vendorPrice = name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
+
+	-- [50] Mythic+
+	do
+		local mythicPlusFilter = addon:RegisterFilter('MythicPlus', 70, function(self, slotData)	
+			if slotData.texture == "Interface\\Icons\\inv_relics_hourglass" or slotData.name == "Outland Mythical Keystone Cache" or slotData.texture == "Interface\\Icons\\inv_legion_chest_legionfall" or ((slotData.class == ARMOR or slotData.class == WEAPON or slotData.class == JEWELRY) and isMythic(slotData.link)) then
+				return MYTHICPLUS
+			else
+				return false
+			end
+		end)
+		mythicPlusFilter.uiName = MythicPlus
+		mythicPlusFilter.uiDesc = L['Put items categorized as Mythic in their own section.']
+	end
+	
 	-- [10] Item classes
 	do
 		local itemCat = addon:RegisterFilter('ItemCategory', 10)
 		itemCat.uiName = L['Item category']
 		itemCat.uiDesc = L['Put items in sections depending on their first-level category at the Auction House.']
-			..'\n|cffff7700'..L['Please note this filter matchs every item. Any filter with lower priority than this one will have no effect.']..'|r'
-
+		..'\n|cffff7700'..L['Please note this filter matchs every item. Any filter with lower priority than this one will have no effect.']..'|r'
+		
 		function itemCat:OnInitialize(slotData)
 			self.db = addon.db:RegisterNamespace(self.moduleName, {
 				profile = {
