@@ -77,6 +77,8 @@ local LSM = LibStub('LibSharedMedia-3.0')
 
 local ITEM_SEARCHBAR_LIST = {"BagItemSearchBox", "GuildItemSearchBox", "VoidItemSearchBox", "BankItemSearchBox"}
 
+
+
 --------------------------------------------------------------------------------
 -- Widget scripts
 --------------------------------------------------------------------------------
@@ -88,6 +90,31 @@ local function BagSlotButton_OnClick(button)
 		button.panel:Hide()
 	end
 	--changed instead of button.panel:SetShown(button:GetChecked())
+end
+
+--------------------------------------------------------------------------------
+-- ElvUI EditBox Functions
+--------------------------------------------------------------------------------
+
+local function SearchEditBox_OnTextChanged(editBox)
+	local text = editBox:GetText()
+	if not text or text:trim() == "" then
+		editBox.clearButton:Hide()
+	else
+		editBox.clearButton:Show()
+	end
+	mod:SendMessage('AdiBags_UpdateAllButtons')
+end
+
+local function SearchEditBox_OnEnterPressed(editBox)
+	editBox:ClearFocus()
+	return SearchEditBox_OnTextChanged(editBox)
+end
+
+local function SearchEditBox_OnEscapePressed(editBox)
+	editBox:ClearFocus()
+	editBox:SetText('')
+	return SearchEditBox_OnTextChanged(editBox)
 end
 
 --------------------------------------------------------------------------------
@@ -196,12 +223,50 @@ function containerProto:OnCreate(name, isBank, bagObject)
 	}, "ANCHOR_BOTTOMLEFT", -8, 0)
 	headerLeftRegion:AddWidget(bagSlotButton, 50)
 
-	local searchBox = CreateFrame("EditBox", self:GetName().."SearchBox", self, "BagSearchBoxTemplate")
-	searchBox:SetSize(130, 20)
-	searchBox:SetFrameLevel(frameLevel)
-	headerRightRegion:AddWidget(searchBox, -10, 130, 0, -1)
-	tinsert(ITEM_SEARCHBAR_LIST, searchBox:GetName())
+	if self:GetName() == "AdiBagsContainer1" then
+		local frame = self
 
+		local searchBox = CreateFrame("Frame", "AdiBagsSearchBox", frame)
+		searchBox:SetSize(100, 18)
+		self.widget = searchBox
+
+		local searchEditBox = CreateFrame("EditBox", nil, searchBox, "InputBoxTemplate")
+		searchEditBox:SetAutoFocus(false)
+		searchEditBox:SetPoint("TOPLEFT")
+		searchEditBox:SetPoint("TOPRIGHT")
+		searchEditBox:SetHeight(18)
+		searchEditBox:SetScript("OnEnterPressed", SearchEditBox_OnEnterPressed)
+		searchEditBox:SetScript("OnEscapePressed", SearchEditBox_OnEscapePressed)
+		searchEditBox:SetScript("OnTextChanged", function() self:SendMessage('INVENTORY_SEARCH_UPDATE') end)--UpdateSearch)
+		searchEditBox:SetScript("OnChar", function() self:SendMessage('INVENTORY_SEARCH_UPDATE') end)-- UpdateSearch)
+
+		self.widget.editBox = searchEditBox
+		self.widget.GetText = function() return searchEditBox:GetText() end
+
+		local searchLabel = searchEditBox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		searchLabel:SetPoint("TOPRIGHT", searchEditBox, "TOPLEFT", -4, 0)
+		searchLabel:SetText(L["Search:"].." ")
+		searchLabel:SetHeight(18)
+
+		local searchClearButton = CreateFrame("Button", nil, searchBox, "UIPanelButtonTemplate")
+		searchClearButton:SetPoint("TOPRIGHT", searchBox)
+		searchClearButton:SetSize(20, 20)
+		searchClearButton:SetText("X")
+		searchClearButton:Hide()
+		searchClearButton:SetScript('OnClick', function() SearchEditBox_OnEscapePressed(searchEditBox) end)
+		searchClearButton:SetScript('OnHide', function() searchEditBox:SetPoint("TOPRIGHT", searchBox, "TOPRIGHT", 0, 0) end)
+		searchClearButton:SetScript('OnShow', function() searchEditBox:SetPoint("TOPRIGHT", searchClearButton, "TOPLEFT", -4, 0) end)
+
+		searchEditBox.clearButton = searchClearButton
+
+		addon.SetupTooltip(searchEditBox, {
+			L["Item search"],
+			L["Enter a text to search in item names."]
+		}, "ANCHOR_TOPLEFT", 0, 8)
+
+		frame:AddHeaderWidget(searchBox, -10, 104 + searchLabel:GetStringWidth(), -1)
+	end
+	--END OF TEST
 	local title = self:CreateFontString(self:GetName().."Title","OVERLAY")
 	self.Title = title
 	title:SetFontObject(addon.bagFont)
