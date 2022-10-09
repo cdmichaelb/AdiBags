@@ -169,8 +169,19 @@ Lib.Filters.quality = {
 	end,
 }
 
-for i = 0, #ITEM_QUALITY_COLORS do
-	Lib.Filters.quality.keywords[i] = _G["ITEM_QUALITY" .. i .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[0] = _G["ITEM_QUALITY" .. 0 .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[1] = _G["ITEM_QUALITY" .. 1 .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[2] = _G["ITEM_QUALITY" .. 2 .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[3] = _G["ITEM_QUALITY" .. 3 .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[4] = _G["ITEM_QUALITY" .. 4 .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[5] = _G["ITEM_QUALITY" .. 5 .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[6] = _G["ITEM_QUALITY" .. 6 .. "_DESC"]:lower()
+Lib.Filters.quality.keywords[7] = _G["ITEM_QUALITY" .. 7 .. "_DESC"]:lower()
+
+for i = 0, 7 do--#ITEM_QUALITY_COLORS-2 do --Fix as ascension has quality 8 and 9 being nil
+	-- Lib.Filters.quality.keywords[i] = _G["ITEM_QUALITY" .. i .. "_DESC"]:lower()
+	print(_G["ITEM_QUALITY" .. i .. "_DESC"])
+	print(Lib.Filters.quality.keywords[i])
 end
 
 --[[ Classic Keywords ]]--
