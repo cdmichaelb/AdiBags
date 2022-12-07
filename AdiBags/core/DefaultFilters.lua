@@ -27,7 +27,7 @@ local function isMythic(itemLink)
 	tip:SetHyperlink(itemLink);
 	tip:Show()
 	for i = 2,2 do--tip:NumLines() do
-	   if(string.find(_G["TooltipTextLeft"..i]:GetText(), "Mythic ")) then
+	   if(string.find(_G["TooltipTextLeft"..i]:GetText(), "Mythic %d+")) then
 		  return true
 	   end
 	end
@@ -103,15 +103,29 @@ function addon:SetupDefaultFilters()
 		questItemFilter.uiName = L['Quest Items']
 		questItemFilter.uiDesc = L['Put quest-related items in their own section.']
 	end
-	
-	-- name, 		_, quality, 		iLevel, 		reqLevel, 			class,			 subclass, 			equipSlot, 			texture, 		vendorPrice = GetItemInfo(itemId)
-	-- slotData.name, slotData.quality, slotData.iLevel, slotData.reqLevel, slotData.class, slotData.subclass, slotData.equipSlot, slotData.texture, slotData.vendorPrice = name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
-
+	--  1        		2      			3                	4              		5					6					7					8						9					10					11
+	-- name, 			link,			quality, 			iLevel, 			reqLevel, 			class,			 	subclass, 			maxStack, 				equipSlot,			texture, 			vendorPrice 			= GetItemInfo(itemId)
+	-- name, 			link, 			quality, 			iLevel, 			reqLevel, 			class, 				subclass, 			maxStack, 				equipSlot, 			texture, 			vendorPrice 			= GetItemInfo(link)
+	-- slotData.name,	slotData.link	slotData.quality, 	slotData.iLevel, 	slotData.reqLevel, 	slotData.class, 	slotData.subclass, 	slotData.maxStack,     	slotData.equipSlot	slotData.texture, 	slotData.vendorPrice 	= name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
 	-- [70] Mythic+
 	do
 		local mythicPlusFilter = addon:RegisterFilter('MythicPlus', 70, function(self, slotData)	
-			if slotData.texture == "Interface\\Icons\\inv_relics_hourglass" or slotData.name == "Outland Mythical Keystone Cache" or slotData.texture == "Interface\\Icons\\inv_legion_chest_legionfall" or ((slotData.class == ARMOR or slotData.class == WEAPON or slotData.class == JEWELRY) and isMythic(slotData.link)) then
+			if slotData.texture == "Interface\\Icons\\inv_relics_hourglass" or slotData.name == "Outland Mythical Keystone Cache" or slotData.texture == "Interface\\Icons\\inv_legion_chest_legionfall" then
 				return MYTHICPLUS
+			elseif ((
+					--slotData.reqLevel == 60 and 
+					slotData.iLevel >= 65 and slotData.iLevel >= 88) or 
+					(
+					--slotData.reqLevel == 70 and 
+					slotData.iLevel >= 121 and slotData.iLevel >= 168)
+					) 
+					and 
+					--equipSlot and equipSlot ~= "" and 
+					(slotData.class == ARMOR or slotData.class == WEAPON or slotData.class == JEWELRY) then
+				if isMythic(slotData.link) then
+					print(slotData.name .. " Is Mythic+")
+					return MYTHICPLUS
+				end
 			else
 				return false
 			end
@@ -171,50 +185,54 @@ function addon:SetupDefaultFilters()
 			end
 			local AscensionItemEquipmentList = {
 				--Tier 1 Tokens
-			2522360, 2522360, 2622360, 2722360,
-			2522361, 2522361, 2622361, 2722361,
-			2522350, 2522350, 2622350, 2722350,
-			2522362, 2522362, 2622362, 2722362,
-			2522363, 2522363, 2622363, 2722363,
-			2522364, 2522364, 2622364, 2722364,
-			2522359, 2522359, 2622359, 2722359,
-			2522365, 2522365, 2622365, 2722365,
+			2522360, 2622360, 2722360,
+			2522361, 2622361, 2722361,
+			2522350, 2622350, 2722350,
+			2522362, 2622362, 2722362,
+			2522363, 2622363, 2722363,
+			2522364, 2622364, 2722364,
+			2522359, 2622359, 2722359,
+			2522365, 2622365, 2722365,
 			--Tier 2 Tokens
-			2522460, 2522460, 2622460, 2722460,
-			2522461, 2522461, 2622461, 2722461,
-			2522450, 2522450, 2622450, 2722450,
-			2522462, 2522462, 2622462, 2722462,
-			2522464, 2522464, 2622464, 2722464,
-			2522463, 2522463, 2622463, 2722463,
-			2522459, 2522459, 2622459, 2722459,
-			2522465, 2522465, 2622465, 2722465,
+			2522460, 2622460, 2722460,
+			2522461, 2622461, 2722461,
+			2522450, 2622450, 2722450,
+			2522462, 2622462, 2722462,
+			2522464, 2622464, 2722464,
+			2522463, 2622463, 2722463,
+			2522459, 2622459, 2722459,
+			2522465, 2622465, 2722465,
 			--Tier 3 Tokens
-			22353, 22353, 102278, 222353,
-			22354, 22354, 102286, 222354,
-			22349, 22349, 102264, 222349,
-			22355, 22355, 102262, 222355,
-			22357, 22357, 102268, 222357,
-			22356, 22356, 102300, 222356,
-			22352, 22352, 102284, 222352,
-			22358, 22358, 102290, 222358,
+			22353, 102278, 222353,
+			22354, 102286, 222354,
+			22349, 102264, 222349,
+			22355, 102262, 222355,
+			22357, 102268, 222357,
+			22356, 102300, 222356,
+			22352, 102284, 222352,
+			22358, 102290, 222358,
 			--Tier 4 Tokens
-			29761, 29761, 329761, 229761,
-			29764, 29764, 329764, 229764,
-			29753, 29753, 329753, 229753,
-			29758, 29758, 329758, 229758,
-			29767, 29767, 329767, 229767,
+			29761, 329761, 1329761, 229761,
+			29764, 329764, 1329764, 229764,
+			29753, 329753, 1329753, 229753,
+			29758, 329758, 1329758, 229758,
+			29767, 329767, 1329767, 229767,
 			--Tier 5 Tokens
-			30243, 30243, 330243, 230243,
-			30249, 30249, 330249, 230249,
-			30237, 30237, 330237, 230237,
-			30240, 30240, 330240, 230240,
-			30246, 30246, 30246, 230246,
+			30243, 330243, 1330243, 230243,
+			30249, 330249, 1330249, 230249,
+			30237, 330237, 1330237, 230237,
+			30240, 330240, 1330240, 230240,
+			30246, 330246, 1330246, 230246,
 			--Quest items with loot
 			232405, 332405
 			}
-			for k,v in pairs(AscensionItemEquipmentList) do
-				if v == slotData.itemId then
-					return EQUIPMENT
+			if slotData.class == "Miscellaneous" and slotData.subclass == "Junk" and (slotData.vendorPrice == 0 or slotData.vendorPrice == 50000) and slotData.equipSlot == "" 
+			--and (slotData.reqLevel == 60 or slotData.reqLevel == 70) 
+			then -- Tier tokens only
+				for k,v in pairs(AscensionItemEquipmentList) do
+					if v == slotData.itemId then
+						return EQUIPMENT
+					end
 				end
 			end
 		end)
