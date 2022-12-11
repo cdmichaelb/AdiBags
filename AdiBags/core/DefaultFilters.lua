@@ -21,16 +21,12 @@ along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 
 local addonName, addon = ...
 
-local tip = CreateFrame("GameTooltip","Tooltip",nil,"GameTooltipTemplate")
+local tip = CreateFrame("GameTooltip","TooltipMP",nil,"GameTooltipTemplate")
 tip:SetOwner(UIParent, "ANCHOR_NONE")
 
 local function isMythic(itemLink)
 	tip:SetHyperlink(itemLink);
-	-- tip:Show()
-	-- for i = 2,2 do--tip:NumLines() do
-		-- end
-	
-	local line = _G["TooltipTextLeft2"]
+	local line = _G["TooltipMPTextLeft2"]
 	local text = line and line:GetText()
 	if(string.find(text, "Mythic %d+")) then
 		return true
@@ -114,20 +110,22 @@ function addon:SetupDefaultFilters()
 	-- [70] Mythic+
 	do
 		local mythicPlusFilter = addon:RegisterFilter('MythicPlus', 70, function(self, slotData)	
-			if slotData.texture == "Interface\\Icons\\inv_relics_hourglass" or slotData.name == "Outland Mythical Keystone Cache" or slotData.texture == "Interface\\Icons\\inv_legion_chest_legionfall" then
+			if (UnitLevel("player") == 60 or UnitLevel("player") == 70) 
+				and slotData.texture == "Interface\\Icons\\inv_relics_hourglass" or slotData.name == "Outland Mythical Keystone Cache" or slotData.texture == "Interface\\Icons\\inv_legion_chest_legionfall" 
+			then
 				return MYTHICPLUS
-			elseif ((
-					--slotData.reqLevel == 60 and 
-					slotData.iLevel >= 65 and slotData.iLevel <= 88) or 
-					(
-					--slotData.reqLevel == 70 and 
-					slotData.iLevel >= 121 and slotData.iLevel <= 168)
-					) 
-					and 
-					--equipSlot and equipSlot ~= "" and 
-					(slotData.class == ARMOR or slotData.class == WEAPON or slotData.class == JEWELRY) then
+			elseif (
+				--slotData.reqLevel == 60 and 
+				(UnitLevel("player") == 60 and slotData.iLevel >= 65 and slotData.iLevel <= 88) or 
+				
+				--slotData.reqLevel == 70 and 
+				(UnitLevel("player") == 70 and slotData.iLevel >= 121 and slotData.iLevel <= 168)
+				) 
+				and 
+				--equipSlot and equipSlot ~= "" and 
+				(slotData.class == ARMOR or slotData.class == WEAPON or slotData.class == JEWELRY) 
+			then
 				if isMythic(slotData.link) then
-					print(slotData.name .. " Is Mythic+")
 					return MYTHICPLUS
 				end
 			else
