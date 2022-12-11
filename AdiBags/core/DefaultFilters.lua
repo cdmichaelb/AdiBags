@@ -21,15 +21,19 @@ along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 
 local addonName, addon = ...
 
+local tip = CreateFrame("GameTooltip","Tooltip",nil,"GameTooltipTemplate")
+tip:SetOwner(UIParent, "ANCHOR_NONE")
+
 local function isMythic(itemLink)
-	local tip = CreateFrame("GameTooltip","Tooltip",nil,"GameTooltipTemplate")
-	tip:SetOwner(UIParent, "ANCHOR_NONE")
 	tip:SetHyperlink(itemLink);
-	tip:Show()
-	for i = 2,2 do--tip:NumLines() do
-	   if(string.find(_G["TooltipTextLeft"..i]:GetText(), "Mythic %d+")) then
-		  return true
-	   end
+	-- tip:Show()
+	-- for i = 2,2 do--tip:NumLines() do
+		-- end
+	
+	local line = _G["TooltipTextLeft2"]
+	local text = line and line:GetText()
+	if(string.find(text, "Mythic %d+")) then
+		return true
 	end
  end
 
