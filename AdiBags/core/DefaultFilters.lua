@@ -114,10 +114,10 @@ function addon:SetupDefaultFilters()
 				return MYTHICPLUS
 			elseif ((
 					--slotData.reqLevel == 60 and 
-					slotData.iLevel >= 65 and slotData.iLevel >= 88) or 
+					slotData.iLevel >= 65 and slotData.iLevel <= 88) or 
 					(
 					--slotData.reqLevel == 70 and 
-					slotData.iLevel >= 121 and slotData.iLevel >= 168)
+					slotData.iLevel >= 121 and slotData.iLevel <= 168)
 					) 
 					and 
 					--equipSlot and equipSlot ~= "" and 
