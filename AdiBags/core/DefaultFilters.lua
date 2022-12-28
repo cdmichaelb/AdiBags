@@ -28,7 +28,7 @@ local function isMythic(itemLink)
 	tip:SetHyperlink(itemLink);
 	local line = _G["TooltipMPTextLeft2"]
 	local text = line and line:GetText()
-	if(string.find(text, "Mythic %d+")) then
+	if (text and string.find(text, "Mythic %d+")) then
 		return true
 	end
  end
@@ -124,10 +124,10 @@ function addon:SetupDefaultFilters()
 				and 
 				--equipSlot and equipSlot ~= "" and 
 				(slotData.class == ARMOR or slotData.class == WEAPON or slotData.class == JEWELRY) 
-			then
-				if isMythic(slotData.link) then
-					return MYTHICPLUS
-				end
+				then
+					if isMythic(slotData.link) then
+						return MYTHICPLUS
+					end
 			else
 				return false
 			end
