@@ -35,7 +35,7 @@ local function isMythic(itemLink)
 
 local function isTransmog(itemLink)
 	tip:SetHyperlink(itemLink);
-	for i = 30, 1, -1 do
+	for i = tip:NumLines(), tip:NumLines()-4, -1 do
 		local line = _G["TooltipMPTextLeft"..i]
 		local text = line and line:GetText()
 		if (text and string.find(text, "You haven't collected this appearance")) then
@@ -80,8 +80,8 @@ function addon:SetupDefaultFilters()
 	self:SetCategoryOrders{
 		[QUEST] = 30,
 		[TRADE_GOODS] = 20,
-		[EQUIPMENT] = 10,
-		[MYTHICPLUS] = 0,
+		[TRANSMOG] = 10,
+		[EQUIPMENT] = 0,
 		[MYTHICPLUS] = -10,
 		[CONSUMMABLE] = -20,
 		[MISCELLANEOUS] = -30,
@@ -150,9 +150,9 @@ function addon:SetupDefaultFilters()
 	end
 
 	
-	-- [50] Transmog
+	-- [65] Transmog
 	do
-		local transmogFilter = addon:RegisterFilter('transmog', 65, function(self, slotData)	
+		local transmogFilter = addon:RegisterFilter('Transmog', 65, function(self, slotData)	
 			if (slotData.class == ARMOR or slotData.class == WEAPON) then
 				if isTransmog(slotData.link) then
 					return TRANSMOG
@@ -162,7 +162,7 @@ function addon:SetupDefaultFilters()
 			end
 		end)
 		transmogFilter.uiName = Transmog
-		transmogFilter.uiDesc = L['Put items categorized as Mythic in their own section.']
+		transmogFilter.uiDesc = L['Put items categorized as Transmog in their own section.']
 	end
 	
 	-- [60] Equipment
