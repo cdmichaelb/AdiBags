@@ -59,7 +59,7 @@ function addon:SetupDefaultFilters()
 	local L = addon.L
 
 	-- Make some strings local to speed things
-	local CONSUMMABLE = "Consumable" -- GetItemClassInfo(LE_ITEM_CLASS_CONSUMABLE)
+	local CONSUMABLE = "Consumable" -- GetItemClassInfo(LE_ITEM_CLASS_CONSUMABLE)
 	--Todo: Add Localization for Junk variable
 	local JUNK = "Junk"--GetItemSubClassInfo(LE_ITEM_CLASS_MISCELLANEOUS, 0)
 	local MISCELLANEOUS = "Miscellaneous"--GetItemClassInfo(LE_ITEM_CLASS_MISCELLANEOUS)
@@ -71,6 +71,10 @@ function addon:SetupDefaultFilters()
 	local KEY = "Key" --GetItemClassInfo(LE_ITEM_CLASS_KEY)
 	local MYTHICPLUS = "Mythic+" --GetItemClassInfo(Mythicplus)
 	local TRANSMOG = "Transmog" --GetItemClassInfo(Transmog)
+	local LUCKYGOLDENSKILLCARD = "Lucky Golden Skill Card" --GetItemClassInfo(Ascension)
+	local LUCKYSKILLCARD = "Lucky Skill Card" --GetItemClassInfo(Ascension)
+	local GOLDENSKILLCARD = "Golden Skill Card" --GetItemClassInfo(Ascension)
+	local SKILLCARD = "Skill Card" --GetItemClassInfo(Ascension)
 	local ASCENSION = "Ascension" --GetItemClassInfo(Ascension)
 	local JEWELRY = L['Jewelry']
 	local EQUIPMENT = L['Equipment']
@@ -83,8 +87,12 @@ function addon:SetupDefaultFilters()
 		[TRANSMOG] = 10,
 		[EQUIPMENT] = 0,
 		[MYTHICPLUS] = -10,
-		[CONSUMMABLE] = -20,
+		[CONSUMABLE] = -20,
 		[MISCELLANEOUS] = -30,
+		[LUCKYGOLDENSKILLCARD] = -32,
+		[LUCKYSKILLCARD] = -34,
+		[GOLDENSKILLCARD] = -36,
+		[SKILLCARD] = -38,
 		[ASCENSION] = -40,
 		[AMMUNITION] = -50,
 		[KEY] = -60,
@@ -215,48 +223,48 @@ function addon:SetupDefaultFilters()
 				return category or EQUIPMENT, EQUIPMENT
 			end
 			local AscensionItemEquipmentList = {
-				--Tier 1 Tokens
-			2522360, 2622360, 2722360,
-			2522361, 2622361, 2722361,
-			2522350, 2622350, 2722350,
-			2522362, 2622362, 2722362,
-			2522363, 2622363, 2722363,
-			2522364, 2622364, 2722364,
-			2522359, 2622359, 2722359,
-			2522365, 2622365, 2722365,
-			--Tier 2 Tokens
-			2522460, 2622460, 2722460,
-			2522461, 2622461, 2722461,
-			2522450, 2622450, 2722450,
-			2522462, 2622462, 2722462,
-			2522464, 2622464, 2722464,
-			2522463, 2622463, 2722463,
-			2522459, 2622459, 2722459,
-			2522465, 2622465, 2722465,
-			--Tier 3 Tokens
-			22353, 102278, 222353,
-			22354, 102286, 222354,
-			22349, 102264, 222349,
-			22355, 102262, 222355,
-			22357, 102268, 222357,
-			22356, 102300, 222356,
-			22352, 102284, 222352,
-			22358, 102290, 222358,
-			--Tier 4 Tokens
-			29761, 329761, 1329761, 229761,
-			29764, 329764, 1329764, 229764,
-			29753, 329753, 1329753, 229753,
-			29758, 329758, 1329758, 229758,
-			29767, 329767, 1329767, 229767,
-			--Tier 5 Tokens
-			30243, 330243, 1330243, 230243,
-			30249, 330249, 1330249, 230249,
-			30237, 330237, 1330237, 230237,
-			30240, 330240, 1330240, 230240,
-			30246, 330246, 1330246, 230246,
-			--Quest items with loot
-			232405, 332405
-			}
+					--Tier 1 Tokens
+				2522360, 2622360, 2722360,
+				2522361, 2622361, 2722361,
+				2522350, 2622350, 2722350,
+				2522362, 2622362, 2722362,
+				2522363, 2622363, 2722363,
+				2522364, 2622364, 2722364,
+				2522359, 2622359, 2722359,
+				2522365, 2622365, 2722365,
+				--Tier 2 Tokens
+				2522460, 2622460, 2722460,
+				2522461, 2622461, 2722461,
+				2522450, 2622450, 2722450,
+				2522462, 2622462, 2722462,
+				2522464, 2622464, 2722464,
+				2522463, 2622463, 2722463,
+				2522459, 2622459, 2722459,
+				2522465, 2622465, 2722465,
+				--Tier 3 Tokens
+				22353, 102278, 222353,
+				22354, 102286, 222354,
+				22349, 102264, 222349,
+				22355, 102262, 222355,
+				22357, 102268, 222357,
+				22356, 102300, 222356,
+				22352, 102284, 222352,
+				22358, 102290, 222358,
+				--Tier 4 Tokens
+				29761, 329761, 1329761, 229761,
+				29764, 329764, 1329764, 229764,
+				29753, 329753, 1329753, 229753,
+				29758, 329758, 1329758, 229758,
+				29767, 329767, 1329767, 229767,
+				--Tier 5 Tokens
+				30243, 330243, 1330243, 230243,
+				30249, 330249, 1330249, 230249,
+				30237, 330237, 1330237, 230237,
+				30240, 330240, 1330240, 230240,
+				30246, 330246, 1330246, 230246,
+				--Quest items with loot
+				232405, 332405
+				}
 			if slotData.class == "Miscellaneous" and slotData.subclass == "Junk" and (slotData.vendorPrice == 0 or slotData.vendorPrice == 50000) and slotData.equipSlot == "" 
 			--and (slotData.reqLevel == 60 or slotData.reqLevel == 70) 
 			then -- Tier tokens only
@@ -299,9 +307,59 @@ function addon:SetupDefaultFilters()
 		end
 	end
 
+	-- [58] SkillCard
+	do
+		local LuckyGoldenSkillCardFilter = addon:RegisterFilter('LuckyGoldenSkillCard', 58, function(self, slotData)	
+			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
+				if (string.find(slotData.name, "Lucky Golden Skill Card -")) then
+					return LUCKYGOLDENSKILLCARD
+				end
+			end
+		end)
+		LuckyGoldenSkillCardFilter.uiName = LuckyGoldenSkillCard
+		LuckyGoldenSkillCardFilter.uiDesc = L['Put items categorized as Skill Cards in their own section.']
+	end
 
+	-- [56] SkillCard
+	do
+		local LuckySkillCardFilter = addon:RegisterFilter('LuckySkillCard', 56, function(self, slotData)	
+			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
+				if (string.find(slotData.name, "Lucky Skill Card -")) then
+					return LUCKYSKILLCARD
+				end
+			end
+		end)
+		LuckySkillCardFilter.uiName = LuckySkillCard
+		LuckySkillCardFilter.uiDesc = L['Put items categorized as Skill Cards in their own section.']
+	end
 
-	-- [50] Ascension+
+	-- [54] SkillCard
+	do
+		local GoldenSkillCardFilter = addon:RegisterFilter('GoldenSkillCard', 54, function(self, slotData)	
+			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
+				if (string.find(slotData.name, "Golden Skill Card -")) then
+					return GOLDENSKILLCARD
+				end
+			end
+		end)
+		GoldenSkillCardFilter.uiName = GoldenSkillCard
+		GoldenSkillCardFilter.uiDesc = L['Put items categorized as Skill Cards in their own section.']
+	end
+
+	-- [52] SkillCard
+	do
+		local SkillCardFilter = addon:RegisterFilter('SkillCard', 52, function(self, slotData)	
+			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
+				if (string.find(slotData.name, "Skill Card -")) then
+					return SKILLCARD
+				end
+			end
+		end)
+		SkillCardFilter.uiName = SkillCard
+		SkillCardFilter.uiDesc = L['Put items categorized as Skill Cards in their own section.']
+	end
+
+	-- [50] Ascension
 	do
 		local AscensionFilter = addon:RegisterFilter('Ascension', 50, function(self, slotData)	
 			local AscensionItemList = {32912, 33016}
@@ -346,7 +404,7 @@ function addon:SetupDefaultFilters()
 					order = 10,
 					values = {
 						[TRADE_GOODS] = TRADE_GOODS,
-						[CONSUMMABLE] = CONSUMMABLE,
+						[CONSUMABLE] = CONSUMABLE,
 						[MISCELLANEOUS] = MISCELLANEOUS,
 						[RECIPE] = RECIPE,
 					}
