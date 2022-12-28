@@ -33,6 +33,17 @@ local function isMythic(itemLink)
 	end
  end
 
+local function isTransmog(itemLink)
+	tip:SetHyperlink(itemLink);
+	for i = tip:NumLines(), tip:NumLines()-4, -1 do
+		local line = _G["TooltipMPTextLeft"..i]
+		local text = line and line:GetText()
+		if (text and string.find(text, "You haven't collected this appearance")) then
+			return true
+		end
+	end
+ end
+
 function addon:SetupDefaultFilters()
 	-- Globals: GetEquipmentSetLocations
 	--<GLOBALS
@@ -59,6 +70,7 @@ function addon:SetupDefaultFilters()
 	local ARMOR = "Armor" --GetItemClassInfo(LE_ITEM_CLASS_ARMOR)
 	local KEY = "Key" --GetItemClassInfo(LE_ITEM_CLASS_KEY)
 	local MYTHICPLUS = "Mythic+" --GetItemClassInfo(Mythicplus)
+	local TRANSMOG = "Transmog" --GetItemClassInfo(Transmog)
 	local ASCENSION = "Ascension" --GetItemClassInfo(Ascension)
 	local JEWELRY = L['Jewelry']
 	local EQUIPMENT = L['Equipment']
@@ -68,14 +80,15 @@ function addon:SetupDefaultFilters()
 	self:SetCategoryOrders{
 		[QUEST] = 30,
 		[TRADE_GOODS] = 20,
-		[EQUIPMENT] = 10,
-		[MYTHICPLUS] = 0,
-		[CONSUMMABLE] = -10,
-		[MISCELLANEOUS] = -20,
-		[ASCENSION] = -30,
-		[AMMUNITION] = -40,
-		[KEY] = -50,
-		[JUNK] = -60,
+		[TRANSMOG] = 10,
+		[EQUIPMENT] = 0,
+		[MYTHICPLUS] = -10,
+		[CONSUMMABLE] = -20,
+		[MISCELLANEOUS] = -30,
+		[ASCENSION] = -40,
+		[AMMUNITION] = -50,
+		[KEY] = -60,
+		[JUNK] = -70,
 	}
 	
 	-- [90] Key
@@ -134,6 +147,22 @@ function addon:SetupDefaultFilters()
 		end)
 		mythicPlusFilter.uiName = MythicPlus
 		mythicPlusFilter.uiDesc = L['Put items categorized as Mythic in their own section.']
+	end
+
+	
+	-- [65] Transmog
+	do
+		local transmogFilter = addon:RegisterFilter('Transmog', 65, function(self, slotData)	
+			if (slotData.class == ARMOR or slotData.class == WEAPON) then
+				if isTransmog(slotData.link) then
+					return TRANSMOG
+				end 
+			else
+				return false
+			end
+		end)
+		transmogFilter.uiName = Transmog
+		transmogFilter.uiDesc = L['Put items categorized as Transmog in their own section.']
 	end
 	
 	-- [60] Equipment
