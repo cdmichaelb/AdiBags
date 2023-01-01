@@ -370,7 +370,7 @@ function addon:SetupDefaultFilters()
 				end
 			end
 		
-			if slotData.quality >= 6 then
+			if slotData.quality and slotData.quality >= 6 then
 				return ASCENSION
 			else
 				return false
