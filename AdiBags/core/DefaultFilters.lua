@@ -307,11 +307,15 @@ function addon:SetupDefaultFilters()
 		end
 	end
 
-	-- [58] SkillCard
+	-- [58] Lucky Golden Skill Card
 	do
 		local LuckyGoldenSkillCardFilter = addon:RegisterFilter('LuckyGoldenSkillCard', 58, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
 				if (string.find(slotData.name, "Lucky Golden Skill Card -")) then
+					return LUCKYGOLDENSKILLCARD
+				end
+			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
+				if (string.find(slotData.name, "Lucky Golden Skill Card")) then
 					return LUCKYGOLDENSKILLCARD
 				end
 			end
@@ -320,11 +324,15 @@ function addon:SetupDefaultFilters()
 		LuckyGoldenSkillCardFilter.uiDesc = L['Put items categorized as Skill Cards in their own section.']
 	end
 
-	-- [56] SkillCard
+	-- [56] Lucky Skill Card
 	do
 		local LuckySkillCardFilter = addon:RegisterFilter('LuckySkillCard', 56, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
 				if (string.find(slotData.name, "Lucky Skill Card -")) then
+					return LUCKYSKILLCARD
+				end
+			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
+				if (string.find(slotData.name, "Lucky Skill Card")) then
 					return LUCKYSKILLCARD
 				end
 			end
@@ -333,11 +341,15 @@ function addon:SetupDefaultFilters()
 		LuckySkillCardFilter.uiDesc = L['Put items categorized as Skill Cards in their own section.']
 	end
 
-	-- [54] SkillCard
+	-- [54] Golden Skill Card
 	do
 		local GoldenSkillCardFilter = addon:RegisterFilter('GoldenSkillCard', 54, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
 				if (string.find(slotData.name, "Golden Skill Card -")) then
+					return GOLDENSKILLCARD
+				end
+			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
+				if (string.find(slotData.name, "Golden Skill Card")) then
 					return GOLDENSKILLCARD
 				end
 			end
@@ -346,11 +358,15 @@ function addon:SetupDefaultFilters()
 		GoldenSkillCardFilter.uiDesc = L['Put items categorized as Skill Cards in their own section.']
 	end
 
-	-- [52] SkillCard
+	-- [52] Skill Card
 	do
 		local SkillCardFilter = addon:RegisterFilter('SkillCard', 52, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
 				if (string.find(slotData.name, "Skill Card -")) then
+					return SKILLCARD
+				end
+			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
+				if (string.find(slotData.name, "Skill Card")) then
 					return SKILLCARD
 				end
 			end
