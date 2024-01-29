@@ -35,12 +35,12 @@
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 libs\AceAddon-3.0\AceAddon-3.0.xml
-libs\AceEvent-3.0\AceEvent-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
 libs\AceHook-3.0\AceHook-3.0.xml
 libs\AceConsole-3.0\AceConsole-3.0.xml
 libs\LibSharedMedia-3.0\lib.xml
 libs\LibCompat-1.0\lib.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
 libs\LibItemSearch-1.2\LibItemSearch-1.2.xml
 #@end-no-lib-strip@
 
