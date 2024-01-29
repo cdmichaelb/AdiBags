@@ -311,11 +311,11 @@ function addon:SetupDefaultFilters()
 	do
 		local LuckyGoldenSkillCardFilter = addon:RegisterFilter('LuckyGoldenSkillCard', 58, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
-				if (string.find(slotData.name, "Lucky Golden Skill Card -")) then
+				if (string.find(slotData.name, "Lucky Golden Skill Card -") or string.find(slotData.name, "Golden Ability Sealed Card Pack")) then
 					return LUCKYGOLDENSKILLCARD
 				end
 			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
-				if (string.find(slotData.name, "Lucky Golden Skill Card")) then
+				if (string.find(slotData.name, "Lucky Golden Skill Card") or string.find(slotData.name, "Golden Ability Sealed Card Pack")) then
 					return LUCKYGOLDENSKILLCARD
 				end
 			end
@@ -328,11 +328,11 @@ function addon:SetupDefaultFilters()
 	do
 		local LuckySkillCardFilter = addon:RegisterFilter('LuckySkillCard', 56, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
-				if (string.find(slotData.name, "Lucky Skill Card -")) then
+				if (string.find(slotData.name, "Lucky Skill Card -") or string.find(slotData.name, "Ability Sealed Card Pack")) then
 					return LUCKYSKILLCARD
 				end
 			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
-				if (string.find(slotData.name, "Lucky Skill Card")) then
+				if (string.find(slotData.name, "Lucky Skill Card") or string.find(slotData.name, "Ability Sealed Card Pack")) then
 					return LUCKYSKILLCARD
 				end
 			end
@@ -345,11 +345,11 @@ function addon:SetupDefaultFilters()
 	do
 		local GoldenSkillCardFilter = addon:RegisterFilter('GoldenSkillCard', 54, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
-				if (string.find(slotData.name, "Golden Skill Card -")) then
+				if (string.find(slotData.name, "Golden Skill Card -") or string.find(slotData.name, "Golden Talent Sealed Card Pack")) then
 					return GOLDENSKILLCARD
 				end
 			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
-				if (string.find(slotData.name, "Golden Skill Card")) then
+				if (string.find(slotData.name, "Golden Skill Card") or string.find(slotData.name, "Golden Talent Sealed Card Pack")) then
 					return GOLDENSKILLCARD
 				end
 			end
@@ -362,11 +362,11 @@ function addon:SetupDefaultFilters()
 	do
 		local SkillCardFilter = addon:RegisterFilter('SkillCard', 52, function(self, slotData)	
 			if (slotData.name and slotData.class == CONSUMABLE and slotData.quality >= 1 and slotData.quality <= 4) then
-				if (string.find(slotData.name, "Skill Card -")) then
+				if (string.find(slotData.name, "Skill Card -") or string.find(slotData.name, "Talent Sealed Card Pack")) then
 					return SKILLCARD
 				end
 			elseif (slotData.name and slotData.class == CONSUMABLE and slotData.quality == 6) then
-				if (string.find(slotData.name, "Skill Card")) then
+				if (string.find(slotData.name, "Skill Card") or string.find(slotData.name, "Talent Sealed Card Pack")) then
 					return SKILLCARD
 				end
 			end
