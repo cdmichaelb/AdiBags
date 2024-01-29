@@ -44,7 +44,7 @@ local type = _G.type
 local unpack = _G.unpack
 --GLOBALS>
 
-local addon = LibStub('AceAddon-3.0'):NewAddon(ns, addonName, 'ABEvent-1.0', 'ABBucket-1.0', 'AceHook-3.0', 'AceConsole-3.0', 'LibCompat-1.0')--, 'LibItemSearch-1.2-ElvUI')
+local addon = LibStub('AceAddon-3.0'):NewAddon(ns, addonName, 'ABEvent-1.0', 'ABBucket-1.0', 'AceHook-3.0', 'AceConsole-3.0', 'LibCompat-1.0', 'AceEvent-3.0')--, 'LibItemSearch-1.2-ElvUI')
 addon.itemSearch = LibStub("LibItemSearch-1.2-ElvUI")
 --local LC = LibStub("LibCompat-1.0")
 --LC:Embed(addon)
