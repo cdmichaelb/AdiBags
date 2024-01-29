@@ -33,15 +33,19 @@ local function isMythic(itemLink)
 	end
  end
 
-local function isTransmog(itemLink)
-	tip:SetHyperlink(itemLink);
-	for i = tip:NumLines(), tip:NumLines()-4, -1 do
-		local line = _G["TooltipMPTextLeft"..i]
-		local text = line and line:GetText()
-		if (text and string.find(text, "You haven't collected this appearance")) then
-			return true
+local function isTransmog(itemID)
+	if APPEARANCE_ITEM_INFO[itemID] then
+		local collectedID = APPEARANCE_ITEM_INFO[itemID]:GetCollectedID()
+		if collectedID == itemID then -- unlocked
+			Owned = 2
+		elseif collectedID then -- unlocked but from different item
+			Owned = 4
+		else -- unknown == not learned
+			Owned = 3
 		end
+	return Owned
 	end
+
  end
 
 function addon:SetupDefaultFilters()
@@ -162,7 +166,7 @@ function addon:SetupDefaultFilters()
 	do
 		local transmogFilter = addon:RegisterFilter('Transmog', 65, function(self, slotData)	
 			if (slotData.class == ARMOR or slotData.class == WEAPON) then
-				if isTransmog(slotData.link) then
+				if isTransmog(slotData.itemId) == 3 then
 					return TRANSMOG
 				end 
 			else
