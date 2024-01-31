@@ -112,12 +112,13 @@ function mod:UpdateButton(event, button)
 	local link = button:GetItemLink()
 	local text = texts[button]
 
+
 	if link then -- FIXME!
 		local itemName, _, quality, itemLevel, reqLevel, _, _, _, loc = GetItemInfo(link) --itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType, expacID, setID, isCraftingReagent
 		-- local item = Item:CreateFromBagAndSlot(button.bag, button.slot)
-		local level = itemName and itemLevel
+		local level = itemLevel
 		if level >= settings.minLevel
-			and (quality ~= ITEM_QUALITY_POOR or not settings.ignoreJunk)
+			and (quality ~= 0 or not settings.ignoreJunk)
 			and (loc ~= "" or not settings.equippableOnly)
 		then
 			if SyLevel then
@@ -133,6 +134,8 @@ function mod:UpdateButton(event, button)
 			end
 			if not text then
 				text = CreateText(button)
+			else
+				text:Hide()
 			end
 			text:SetText(level)
 			text:SetTextColor(colorSchemes[settings.colorScheme](level, quality, reqLevel, (loc ~= "")))
@@ -170,14 +173,14 @@ function mod:GetOptions()
 			hidden = SyLevelBypass,
 			values = {
 				none     = L['None'],
-				original = L['Same as InventoryItemLevels'],
+				original = L['Based on Item level'],
 				level    = L['Related to player level'],
 			},
 			order = 20,
 		},
 		minLevel = {
 			name = L['Mininum level'],
-			desc = L['Do not show levels under this threshold.'],
+			desc = L['Do not show Item level under this threshold.'],
 			type = 'range',
 			min = 1,
 			max = 1000,
@@ -308,9 +311,9 @@ do
 	end
 
 	local maxLevelRanges = {
-		[ 60] = {  58,  92 }, -- Classic
-		[ 70] = {  80, 164 }, -- The Burning Crusade
-		[ 80] = { 100, 102 }, -- Wrath of the Lich King
+		[ 60] = {  58,  99 }, -- Classic
+		[ 70] = {  80, 179 }, -- The Burning Crusade
+		[ 80] = { 180, 271 }, -- Wrath of the Lich King
 		[ 85] = { 108, 114 }, -- Cataclysm
 		[ 90] = { 116, 130 }, -- Mists of Pandaria
 		[100] = { 136, 143 }, -- Warlords of Draenor
