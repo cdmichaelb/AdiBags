@@ -113,31 +113,31 @@ function mod:UpdateButton(event, button)
 	local text = texts[button]
 
 	if link then -- FIXME!
-		-- local _, _, quality, _, reqLevel, _, _, _, loc = GetItemInfo(link)
+		local itemName, _, quality, itemLevel, reqLevel, _, _, _, loc = GetItemInfo(link) --itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType, expacID, setID, isCraftingReagent
 		-- local item = Item:CreateFromBagAndSlot(button.bag, button.slot)
-		-- local level = item and item:GetCurrentItemLevel() or 0
-		-- if level >= settings.minLevel
-		-- 	and (quality ~= ITEM_QUALITY_POOR or not settings.ignoreJunk)
-		-- 	and (loc ~= "" or not settings.equippableOnly)
-		-- then
-		-- 	if SyLevel then
-		-- 		if settings.useSyLevel then
-		-- 			if text then
-		-- 				text:Hide()
-		-- 			end
-		-- 			SyLevel:CallFilters('Adibags', button, link)
-		-- 			return
-		-- 		else
-		-- 			SyLevel:CallFilters('Adibags', button, nil)
-		-- 		end
-		-- 	end
-		-- 	if not text then
-		-- 		text = CreateText(button)
-		-- 	end
-		-- 	text:SetText(level)
-		-- 	text:SetTextColor(colorSchemes[settings.colorScheme](level, quality, reqLevel, (loc ~= "")))
-		-- 	return text:Show()
-		-- end
+		local level = itemName and itemLevel
+		if level >= settings.minLevel
+			and (quality ~= ITEM_QUALITY_POOR or not settings.ignoreJunk)
+			and (loc ~= "" or not settings.equippableOnly)
+		then
+			if SyLevel then
+				if settings.useSyLevel then
+					if text then
+						text:Hide()
+					end
+					SyLevel:CallFilters('Adibags', button, link)
+					return
+				else
+					SyLevel:CallFilters('Adibags', button, nil)
+				end
+			end
+			if not text then
+				text = CreateText(button)
+			end
+			text:SetText(level)
+			text:SetTextColor(colorSchemes[settings.colorScheme](level, quality, reqLevel, (loc ~= "")))
+			return text:Show()
+		end
 		return
 	end
 	if SyLevel then
