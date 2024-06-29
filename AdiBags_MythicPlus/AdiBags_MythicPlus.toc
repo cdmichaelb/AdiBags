@@ -1,0 +1,10 @@
+## Interface: 30300
+## Title: AdiBags - MythicPlus support
+## Notes: Adds MythicPlus set filters to AdiBags.
+## Author: Szyler
+## Version: v1.0
+## X-Date: 2024-06-29T12:00:00Z
+
+## Dependencies: AdiBags
+
+AdiBags_MythicPlus.lua

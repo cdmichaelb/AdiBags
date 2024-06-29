@@ -24,15 +24,6 @@ local addonName, addon = ...
 local tip = CreateFrame("GameTooltip","TooltipMP",nil,"GameTooltipTemplate")
 tip:SetOwner(UIParent, "ANCHOR_NONE")
 
-local function isMythic(itemLink)
-	tip:SetHyperlink(itemLink);
-	local line = _G["TooltipMPTextLeft2"]
-	local text = line and line:GetText()
-	if (text and string.find(text, "Mythic %d+")) then
-		return true
-	end
- end
-
 local function isTransmog(itemID)
 	if APPEARANCE_ITEM_INFO[itemID] then
 		local collectedID = APPEARANCE_ITEM_INFO[itemID]:GetCollectedID()
@@ -73,7 +64,6 @@ function addon:SetupDefaultFilters()
 	local WEAPON = "Weapon" -- GetItemClassInfo(LE_ITEM_CLASS_WEAPON)
 	local ARMOR = "Armor" --GetItemClassInfo(LE_ITEM_CLASS_ARMOR)
 	local KEY = "Key" --GetItemClassInfo(LE_ITEM_CLASS_KEY)
-	local MYTHICPLUS = "Mythic+" --GetItemClassInfo(Mythicplus)
 	local TRANSMOG = "Transmog" --GetItemClassInfo(Transmog)
 	local LUCKYGOLDENSKILLCARD = "Lucky Golden Skill Card" --GetItemClassInfo(Ascension)
 	local LUCKYSKILLCARD = "Lucky Skill Card" --GetItemClassInfo(Ascension)
@@ -90,7 +80,6 @@ function addon:SetupDefaultFilters()
 		[TRADE_GOODS] = 20,
 		[TRANSMOG] = 10,
 		[EQUIPMENT] = 0,
-		[MYTHICPLUS] = -10,
 		[CONSUMABLE] = -20,
 		[MISCELLANEOUS] = -30,
 		[LUCKYGOLDENSKILLCARD] = -32,
@@ -132,34 +121,7 @@ function addon:SetupDefaultFilters()
 	-- name, 			link,			quality, 			iLevel, 			reqLevel, 			class,			 	subclass, 			maxStack, 				equipSlot,			texture, 			vendorPrice 			= GetItemInfo(itemId)
 	-- name, 			link, 			quality, 			iLevel, 			reqLevel, 			class, 				subclass, 			maxStack, 				equipSlot, 			texture, 			vendorPrice 			= GetItemInfo(link)
 	-- slotData.name,	slotData.link	slotData.quality, 	slotData.iLevel, 	slotData.reqLevel, 	slotData.class, 	slotData.subclass, 	slotData.maxStack,     	slotData.equipSlot	slotData.texture, 	slotData.vendorPrice 	= name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
-	-- [70] Mythic+
-	do
-		local mythicPlusFilter = addon:RegisterFilter('MythicPlus', 70, function(self, slotData)	
-			if (UnitLevel("player") == 60 or UnitLevel("player") == 70) 
-				and slotData.texture == "Interface\\Icons\\inv_relics_hourglass" or slotData.name == "Outland Mythical Keystone Cache" or slotData.texture == "Interface\\Icons\\inv_legion_chest_legionfall" 
-			then
-				return MYTHICPLUS
-			elseif (
-				--slotData.reqLevel == 60 and 
-				(UnitLevel("player") == 60 and slotData.iLevel and slotData.iLevel >= 65 and slotData.iLevel <= 88) or 
-				
-				--slotData.reqLevel == 70 and 
-				(UnitLevel("player") == 70 and slotData.iLevel and slotData.iLevel >= 121 and slotData.iLevel <= 168)
-				) 
-				and 
-				--equipSlot and equipSlot ~= "" and 
-				(slotData.class == ARMOR or slotData.class == WEAPON or slotData.class == JEWELRY) 
-				then
-					if isMythic(slotData.link) then
-						return MYTHICPLUS
-					end
-			else
-				return false
-			end
-		end)
-		mythicPlusFilter.uiName = MythicPlus
-		mythicPlusFilter.uiDesc = L['Put items categorized as Mythic in their own section.']
-	end
+
 
 	
 	-- [65] Transmog
