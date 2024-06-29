@@ -20,7 +20,7 @@ end
 -----------------------------------------------------------
 
 -- Register our filter with AdiBags
-local filter = addon:RegisterFilter("Ascension", 67, 'AceEvent-3.0')
+local filter = addon:RegisterFilter("Ascension", 70, 'AceEvent-3.0')
 filter.uiName = L['uiName']
 filter.uiDesc = L['UiDesc']
 
@@ -48,12 +48,12 @@ function filter:Filter(slotData)
 	-- 		return ASCENSION
 	-- 	end
 	-- end
-	if VANITY_ITEMS[slotData.id] then 
-		return ASCENSION
+	if VANITY_ITEMS[slotData.id] then
+		return "Ascension"
 	end
 
 	if slotData.quality and slotData.quality >= 6 and slotData.name and not string.find(slotData.name, " of the ") then
-		return ASCENSION
+		return "Ascension"
 	end
 end
 
