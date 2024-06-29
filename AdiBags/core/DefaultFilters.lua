@@ -53,7 +53,6 @@ function addon:SetupDefaultFilters()
 	local LUCKYSKILLCARD = "Lucky Skill Card" --GetItemClassInfo(Ascension)
 	local GOLDENSKILLCARD = "Golden Skill Card" --GetItemClassInfo(Ascension)
 	local SKILLCARD = "Skill Card" --GetItemClassInfo(Ascension)
-	local ASCENSION = "Ascension" --GetItemClassInfo(Ascension)
 	local JEWELRY = L['Jewelry']
 	local EQUIPMENT = L['Equipment']
 	local AMMUNITION = L['Ammunition']
@@ -69,7 +68,6 @@ function addon:SetupDefaultFilters()
 		[LUCKYSKILLCARD] = -34,
 		[GOLDENSKILLCARD] = -36,
 		[SKILLCARD] = -38,
-		[ASCENSION] = -40,
 		[AMMUNITION] = -50,
 		[KEY] = -60,
 		[JUNK] = -70,
