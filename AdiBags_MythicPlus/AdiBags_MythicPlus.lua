@@ -41,13 +41,13 @@ end
 
 function filter:Filter(slotData)
 	if not Outfitter:IsInitialized() then return end
-	local itemInfo = Outfitter:GetItemInfoFromLink(slotData.link)
 	local tip = CreateFrame("GameTooltip","Tooltip",nil,"GameTooltipTemplate")
 	tip:SetOwner(UIParent, "ANCHOR_NONE")
-	tip:SetHyperlink(itemInfo);
+	tip:SetHyperlink(slotData.link);
 	tip:Show()
 	for i = 2,2 do--tip:NumLines() do
-	   if(string.find(_G["TooltipTextLeft"..i]:GetText(), "Mythic ")) then
+		local text = _G["TooltipTextLeft"..i]:GetText()
+	   if(string.find(text, "Mythic %d") or string.find(text, "Mythic Level")) then
 		  return "Mythic+"
 	   end
 	end
