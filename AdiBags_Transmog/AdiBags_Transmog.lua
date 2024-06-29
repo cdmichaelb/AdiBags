@@ -41,10 +41,18 @@ end
 
 function filter:Filter(slotData)
 	if not Outfitter:IsInitialized() then return end
-	if APPEARANCE_ITEM_INFO[slotData.itemId] then
-		local collectedID = APPEARANCE_ITEM_INFO[itemID]:GetCollectedID()
-		if not collectedID then -- unlocked 
+	-- if C_Appearance then
+		-- local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId) -- new API not in use yet
+	if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and (slotData.class == "Weapon" or slotData.class == "Armor") then
+		local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
+		if not appearanceID then
+			-- local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
+			-- if isCollected then -- unlocked
+				-- Owned = 2
+			-- else    -- unknown
+			Owned = 3
 			return "Transmog"
+			-- end
 		end
 	end
 end
