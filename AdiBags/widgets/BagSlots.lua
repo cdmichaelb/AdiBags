@@ -1,22 +1,7 @@
 --[[
 AdiBags - Adirelle's bag addon.
-Copyright 2010-2021 Adirelle (adirelle@gmail.com)
+Copyright 2010-2011 Adirelle (adirelle@tagada-team.net)
 All rights reserved.
-
-This file is part of AdiBags.
-
-AdiBags is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-AdiBags is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
 local addonName, addon = ...
@@ -49,7 +34,6 @@ local GetItemInfo = _G.GetItemInfo
 local GetNumBankSlots = _G.GetNumBankSlots
 local ipairs = _G.ipairs
 local IsInventoryItemLocked = _G.IsInventoryItemLocked
-local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local next = _G.next
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS
 local NUM_BANKGENERIC_SLOTS = _G.NUM_BANKGENERIC_SLOTS
@@ -57,7 +41,7 @@ local pairs = _G.pairs
 local pcall = _G.pcall
 local PickupBagFromSlot = _G.PickupBagFromSlot
 local PickupContainerItem = _G.PickupContainerItem
--- local PlaySound = _G.PlaySound
+local PlaySound = _G.PlaySound
 local PutItemInBag = _G.PutItemInBag
 local select = _G.select
 local SetItemButtonDesaturated = _G.SetItemButtonDesaturated
@@ -75,8 +59,6 @@ local ITEM_SIZE = addon.ITEM_SIZE
 local ITEM_SPACING = addon.ITEM_SPACING
 local BAG_INSET = addon.BAG_INSET
 local TOP_PADDING = addon.TOP_PADDING
-
-local BAG_IDS = addon.BAG_IDS
 
 --------------------------------------------------------------------------------
 -- Swaping process
@@ -104,7 +86,7 @@ do
 		addon:Debug('FindSlotForItem', itemId, GetItemInfo(itemId), 'count=', itemCount, 'maxStack=', maxStack, 'family=', itemFamily, 'bags:', unpack(bags))
 		local bestBag, bestSlot, bestScore
 		for i, bag in pairs(bags) do
-			local scoreBonus = band(bag == KEYRING_CONTAINER and 256 or select(2, GetContainerNumFreeSlots(bag)) or 0, itemFamily) ~= 0 and maxStack or 0
+			local scoreBonus = band(select(2, GetContainerNumFreeSlots(bag)) or 0, itemFamily) ~= 0 and maxStack or 0
 			for slot = 1, GetContainerNumSlots(bag) do
 				local texture, slotCount, locked = GetContainerItemInfo(bag, slot)
 				if not locked and (not texture or GetContainerItemID(bag, slot) == itemId) then
@@ -196,7 +178,7 @@ do
 	function EmptyBag(bag)
 		ClearCursor()
 		wipe(otherBags)
-		local bags = BAG_IDS[BAG_IDS.BANK[bag] and "BANK" or "BAGS"]
+		local bags = addon.BAG_IDS.BANK[bag] and addon.BAG_IDS.BANK or addon.BAG_IDS.BAGS
 		for otherBag in pairs(bags) do
 			if otherBag ~= bag then
 				tinsert(otherBags, otherBag)
@@ -217,7 +199,7 @@ end
 -- Regular bag buttons
 --------------------------------------------------------------------------------
 
-local bagButtonClass, bagButtonProto = addon:NewClass("BagSlotButton", "Button", "ItemButtonTemplate", "ABEvent-1.0")
+local bagButtonClass, bagButtonProto = addon:NewClass("BagSlotButton", "Button", "ItemButtonTemplate", "AceEvent-3.0")
 
 function bagButtonProto:OnCreate(bag)
 	self.bag = bag
@@ -331,9 +313,6 @@ function bagButtonProto:OnDragStart()
 end
 
 function bagButtonProto:BAG_UPDATE(event, bag, ...)
-	--[[!!
-	self:Update()
-	addon:SendMessage('AdiBags_FiltersChanged', true)]]
 	if bag == self.bag then
 		return self:Update()
 	end
@@ -353,7 +332,7 @@ local bankButtonClass, bankButtonProto = addon:NewClass("BankSlotButton", "BagSl
 
 function bankButtonProto:OnClick(button)
 	if self.toPurchase then
-		-- PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
+		PlaySound("igMainMenuOption")
 		StaticPopup_Show("CONFIRM_BUY_BANK_SLOT")
 	else
 		return bagButtonProto.OnClick(self, button)
@@ -390,8 +369,6 @@ function bankButtonProto:Update()
 end
 
 function bankButtonProto:PLAYERBANKSLOTS_CHANGED(event, bankSlot)
-	--!!
-	addon:SendMessage('AdiBags_FiltersChanged', true)
 	if bankSlot - NUM_BANKGENERIC_SLOTS == self.bag - NUM_BAG_SLOTS then
 		self:Update()
 	end
@@ -409,13 +386,14 @@ end
 --------------------------------------------------------------------------------
 
 local function Panel_OnShow(self)
-	-- PlaySound(self.openSound)
+	PlaySound(self.openSound)
 	addon:SendMessage('AdiBags_FiltersChanged', true)
 end
 
 local function Panel_OnHide(self)
-	-- PlaySound(self.closeSound)
+	PlaySound(self.closeSound)
 	addon:SendMessage('AdiBags_FiltersChanged', true)
+	addon:SendMessage('AdiBags_BagSwapPanelClosed', true)
 end
 
 local function Panel_UpdateSkin(self)
@@ -441,11 +419,12 @@ end
 --------------------------------------------------------------------------------
 
 function addon:CreateBagSlotPanel(container, name, bags, isBank)
-	local self = CreateFrame("Frame", container:GetName().."Bags", container, "BackdropTemplate")
+	local self = CreateFrame("Frame", container:GetName().."Bags", container)
+	-- self:SetBackdrop(addon.BACKDROP)
 	self:SetPoint("BOTTOMLEFT", container, "TOPLEFT", 0, 4)
 
-	-- self.openSound = isBank and SOUNDKIT.IG_MAINMENU_OPEN or SOUNDKIT.IG_BACKPACK_OPEN
-	-- self.closeSound = isBank and SOUNDKIT.IG_MAINMENU_CLOSE or SOUNDKIT.IG_BACKPACK_CLOSE
+	self.openSound = isBank and "igMainMenuOpen" or "igBackPackOpen"
+	self.closeSound = isBank and "igMainMenuClose" or "igBackPackClose"
 	self:SetScript('OnShow', Panel_OnShow)
 	self:SetScript('OnHide', Panel_OnHide)
 
@@ -462,7 +441,7 @@ function addon:CreateBagSlotPanel(container, name, bags, isBank)
 	local x = BAG_INSET
 	local height = 0
 	for i, bag in ipairs(bags) do
-		if bag ~= KEYRING_CONTAINER and bag ~= BACKPACK_CONTAINER and bag ~= BANK_CONTAINER then
+		if bag ~= BACKPACK_CONTAINER and bag ~= BANK_CONTAINER then
 			local button = buttonClass:Create(bag)
 			button:SetParent(self)
 			button:SetPoint("TOPLEFT", x, -TOP_PADDING)
@@ -475,7 +454,7 @@ function addon:CreateBagSlotPanel(container, name, bags, isBank)
 	self:SetWidth(x + BAG_INSET)
 	self:SetHeight(BAG_INSET + TOP_PADDING + ITEM_SIZE)
 
-	LibStub('ABEvent-1.0').RegisterMessage(self:GetName(), 'AdiBags_ConfigChanged', Panel_ConfigChanged, self)
+	LibStub('AceEvent-3.0').RegisterMessage(self:GetName(), 'AdiBags_ConfigChanged', Panel_ConfigChanged, self)
 	Panel_UpdateSkin(self)
 
 	return self

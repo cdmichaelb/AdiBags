@@ -1,22 +1,7 @@
 --[[
 AdiBags - Adirelle's bag addon.
-Copyright 2010-2021 Adirelle (adirelle@gmail.com)
+Copyright 2010-2011 Adirelle (adirelle@tagada-team.net)
 All rights reserved.
-
-This file is part of AdiBags.
-
-AdiBags is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-AdiBags is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
 local addonName, addon = ...
@@ -28,7 +13,6 @@ local format = _G.format
 local GetContainerNumFreeSlots = _G.GetContainerNumFreeSlots
 local GetContainerNumSlots = _G.GetContainerNumSlots
 local ipairs = _G.ipairs
-local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local pairs = _G.pairs
 local strjoin = _G.strjoin
 local tconcat = _G.table.concat
@@ -36,7 +20,7 @@ local tinsert = _G.tinsert
 local wipe = _G.wipe
 --GLOBALS>
 
-local mod = addon:NewModule('DataSource', 'ABEvent-1.0', 'ABBucket-1.0')
+local mod = addon:NewModule('DataSource', 'AceEvent-3.0', 'AceBucket-3.0')
 mod.uiName = L['LDB Plugin']
 mod.uiDesc = L['Provides a LDB data source to be displayed by LDB display addons.']
 mod.cannotDisable = true
@@ -90,20 +74,18 @@ function mod:BANKFRAME_CLOSED()
 end
 
 local FAMILY_ORDER = {
-	0x00000, -- Regular bag
-	0x00001, -- Quiver
-	0x00002, -- Ammo Pouch
-	0x00004, -- Soul Bag
-	0x00008, -- Leatherworking Bag
-	0x00010, -- Inscription Bag
-	0x00020, -- Herb Bag
-	0x00040, -- Enchanting Bag
-	0x00080, -- Engineering Bag
-	0x00100, -- Keyring
-	0x00200, -- Gem Bag
-	0x00400, -- Mining Bag
-	0x08000, -- Tackle Box
-	0x10000, -- Refrigerator
+	0x0000, -- Regular bag
+	0x0001, -- Quiver
+  0x0002, -- Ammo Pouch
+  0x0004, -- Soul Bag
+  0x0008, -- Leatherworking Bag
+  0x0010, -- Inscription Bag
+  0x0020, -- Herb Bag
+  0x0040, -- Enchanting Bag
+  0x0080, -- Engineering Bag
+  0x0100, -- Keyring
+  0x0200, -- Gem Bag
+  0x0400, -- Mining Bag
 }
 
 local size = {}
@@ -122,7 +104,7 @@ local function BuildSpaceString(bags)
 	wipe(free)
 	for bag in pairs(bags) do
 		local bagSize = GetContainerNumSlots(bag)
-		if bag ~= KEYRING_CONTAINER and bagSize and bagSize > 0 then
+		if bagSize and bagSize > 0 then
 			local bagFree, bagFamily = GetContainerNumFreeSlots(bag)
 			if mod.db.profile.mergeBags then bagFamily = 0 end
 			size[bagFamily] = (size[bagFamily] or 0) + bagSize
@@ -159,6 +141,12 @@ function mod:Update(event)
 end
 
 function mod:GetOptions()
+	local handler = addon:GetOptionHandler(self)
+	local oldSet = handler.Set
+	handler.Set = function(...)
+		oldSet(...)
+		self:Update()
+	end
 	return {
 		format = {
 			name = L['Bag usage format'],
@@ -198,5 +186,5 @@ function mod:GetOptions()
 			order = 50,
 			disabled = function(info) return info.handler:IsDisabled(info) or self.db.profile.mergeBags end,
 		},
-	}, addon:GetOptionHandler(self, false, function() return self:Update() end)
+	}, addon:GetOptionHandler(self)
 end

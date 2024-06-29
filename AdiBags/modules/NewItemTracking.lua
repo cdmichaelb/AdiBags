@@ -1,49 +1,13 @@
 --[[
 AdiBags - Adirelle's bag addon.
-Copyright 2012-2021 Adirelle (adirelle@gmail.com)
+Copyright 2010 Adirelle (adirelle@tagada-team.net)
 All rights reserved.
-
-This file is part of AdiBags.
-
-AdiBags is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-AdiBags is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
 local addonName, addon = ...
 local L = addon.L
 
---<GLOBALS
-local _G = _G
-local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER
-local CreateFrame = _G.CreateFrame
-local GetContainerItemInfo = _G.GetContainerItemInfo
-local GetContainerNumSlots = _G.GetContainerNumSlots
-local GetInventoryItemID = _G.GetInventoryItemID
-local GetInventoryItemLink = _G.GetInventoryItemLink
-local ITEM_QUALITY_POOR = ITEM_QUALITY0_DESC
-local next = _G.next
-local pairs = _G.pairs
-local PlaySound = _G.PlaySound
-local strmatch = _G.strmatch
-local tonumber = _G.tonumber
-local type = _G.type
-local unpack = _G.unpack
-local wipe = _G.wipe
---GLOBALS>
-
-local IsBattlePayItem = addon.IsBattlePayItem
-
-local mod = addon:RegisterFilter('NewItem', 80, 'ABEvent-1.0')
+local mod = addon:RegisterFilter('NewItem', 100, 'AceEvent-3.0', 'AceBucket-3.0', 'AceTimer-3.0')
 mod.uiName = L['Track new items']
 mod.uiDesc = L['Track new items in each bag, displaying a glowing aura over them and putting them in a special section. "New" status can be reset by clicking on the small "N" button at top left of bags.']
 
@@ -61,6 +25,7 @@ function mod:OnInitialize()
 			showGlow = true,
 			glowScale = 1.5,
 			glowColor = { 0.3, 1, 0.3, 0.7 },
+			ignoreJunk = false,			
 		},
 	})
 	addon:SetCategoryOrder(L['New'], 100)
@@ -136,6 +101,8 @@ end
 local function ResetButton_OnClick(button)
 	PlaySound("igMainMenuOptionCheckBoxOn")
 	mod:Reset(button.bagName)
+	mod:SendMessage('AdiBags_NewItemReset')
+
 end
 
 function mod:OnBagFrameCreated(bag)
@@ -191,6 +158,15 @@ function mod:GetOptions()
 			type = 'color',
 			order = 30,
 			hasAlpha = true,
+					},
+		ignoreJunk = {
+			name = L['Ignore low quality items'],
+			type = 'toggle',
+			order = 40,
+			set = function(info, ...)
+				info.handler:Set(info, ...)
+				self:UpdateBags(allBagIds, event)
+			end					
 		},
 	}, addon:GetOptionHandler(self)
 end
@@ -283,17 +259,22 @@ function mod:UpdateBags(bagIds, event)
 				end
 
 				-- Update counts and new statuses
-				local newItems, GetCount = bag.newItems, bag.GetCount
-				for itemId, oldCount in pairs(counts) do
-					local newCount = GetCount(itemId)
-					counts[itemId] = newCount
-					if oldCount ~= newCount then
-						if not bag.first and oldCount < newCount and not newItems[itemId] then
-							--[===[@debug@
-							self:Debug(itemId, GetItemInfo(itemId), ':', oldCount, '=>', newCount, 'NEW!')
-							--@end-debug@]===]
-							newItems[itemId] = true
-							bag.updated = true
+			local newItems, GetCount = bag.newItems, bag.GetCount
+			for itemId, oldCount in pairs(counts) do
+				local newCount = GetCount(itemId)
+				counts[itemId] = newCount
+				if self.db.profile.ignoreJunk and select(3, GetItemInfo(itemId)) == ITEM_QUALITY_POOR then
+					if newItems[itemId] then
+						newItems[itemId] = nil
+						bag.updated = true
+					end
+				elseif oldCount ~= newCount then
+					if not bag.first and oldCount < (newCount or 0) and not newItems[itemId] then
+						--[===[@debug@
+						self:Debug(itemId, GetItemInfo(itemId), ':', oldCount, '=>', newCount, 'NEW!')
+						--@end-debug@]===]
+						newItems[itemId] = true
+						bag.updated = true
 						end
 					end
 				end
