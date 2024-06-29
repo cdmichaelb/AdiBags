@@ -40,7 +40,6 @@ function filter:OnDisable()
 end
 
 function filter:Filter(slotData)
-	if not Outfitter:IsInitialized() then return end
 	local tip = CreateFrame("GameTooltip","Tooltip",nil,"GameTooltipTemplate")
 	tip:SetOwner(UIParent, "ANCHOR_NONE")
 	tip:SetHyperlink(slotData.link);

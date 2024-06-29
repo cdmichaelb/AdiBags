@@ -40,7 +40,6 @@ function filter:OnDisable()
 end
 
 function filter:Filter(slotData)
-	if not Outfitter:IsInitialized() then return end
 	-- if C_Appearance then
 		-- local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId) -- new API not in use yet
 	if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and (slotData.class == "Weapon" or slotData.class == "Armor") then

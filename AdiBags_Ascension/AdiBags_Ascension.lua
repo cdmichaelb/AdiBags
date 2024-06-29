@@ -40,7 +40,6 @@ function filter:OnDisable()
 end
 
 function filter:Filter(slotData)
-	if not Outfitter:IsInitialized() then return end
 	-- local AscensionItemList = {32912, 33016}
 	--777910, 121421, 1903512, 1903513, 1903515, 121422, 110000, 777999, 640542, 1777028, 121421, 121422, 777999, 110000, 1903512, 1903513, 777910, 1903515, 640542, 977028, 1777028
 	-- for k,v in pairs(AscensionItemList) do
