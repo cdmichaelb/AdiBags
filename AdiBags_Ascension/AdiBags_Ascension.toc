@@ -1,5 +1,5 @@
 ## Interface: 30300
-## Title: AdiBags - MythicPlus support
+## Title: AdiBags - Ascension support
 ## Notes: Adds Ascension specific item filters to AdiBags.
 ## Author: Szyler
 ## Version: v1.0
