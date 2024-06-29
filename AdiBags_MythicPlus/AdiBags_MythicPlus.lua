@@ -31,18 +31,6 @@ function filter:OnInitialize()
 	})
 end
 
-local function isMythic(itemLink)
-	local tip = CreateFrame("GameTooltip","Tooltip",nil,"GameTooltipTemplate")
-	tip:SetOwner(UIParent, "ANCHOR_NONE")
-	tip:SetHyperlink(itemLink);
-	tip:Show()
-	for i = 2,2 do--tip:NumLines() do
-	   if(string.find(_G["TooltipTextLeft"..i]:GetText(), "Mythic ")) then
-		  return true
-	   end
-	end
- end
-
 function filter:OnEnable()
 	addon:UpdateFilters()
 end
