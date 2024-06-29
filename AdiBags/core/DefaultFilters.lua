@@ -24,21 +24,6 @@ local addonName, addon = ...
 local tip = CreateFrame("GameTooltip","TooltipMP",nil,"GameTooltipTemplate")
 tip:SetOwner(UIParent, "ANCHOR_NONE")
 
-local function isTransmog(itemID)
-	if APPEARANCE_ITEM_INFO[itemID] then
-		local collectedID = APPEARANCE_ITEM_INFO[itemID]:GetCollectedID()
-		if collectedID == itemID then -- unlocked
-			Owned = 2
-		elseif collectedID then -- unlocked but from different item
-			Owned = 4
-		else -- unknown == not learned
-			Owned = 3
-		end
-	return Owned
-	end
-
- end
-
 function addon:SetupDefaultFilters()
 	-- Globals: GetEquipmentSetLocations
 	--<GLOBALS
@@ -64,7 +49,6 @@ function addon:SetupDefaultFilters()
 	local WEAPON = "Weapon" -- GetItemClassInfo(LE_ITEM_CLASS_WEAPON)
 	local ARMOR = "Armor" --GetItemClassInfo(LE_ITEM_CLASS_ARMOR)
 	local KEY = "Key" --GetItemClassInfo(LE_ITEM_CLASS_KEY)
-	local TRANSMOG = "Transmog" --GetItemClassInfo(Transmog)
 	local LUCKYGOLDENSKILLCARD = "Lucky Golden Skill Card" --GetItemClassInfo(Ascension)
 	local LUCKYSKILLCARD = "Lucky Skill Card" --GetItemClassInfo(Ascension)
 	local GOLDENSKILLCARD = "Golden Skill Card" --GetItemClassInfo(Ascension)
@@ -78,7 +62,6 @@ function addon:SetupDefaultFilters()
 	self:SetCategoryOrders{
 		[QUEST] = 30,
 		[TRADE_GOODS] = 20,
-		[TRANSMOG] = 10,
 		[EQUIPMENT] = 0,
 		[CONSUMABLE] = -20,
 		[MISCELLANEOUS] = -30,
@@ -121,24 +104,6 @@ function addon:SetupDefaultFilters()
 	-- name, 			link,			quality, 			iLevel, 			reqLevel, 			class,			 	subclass, 			maxStack, 				equipSlot,			texture, 			vendorPrice 			= GetItemInfo(itemId)
 	-- name, 			link, 			quality, 			iLevel, 			reqLevel, 			class, 				subclass, 			maxStack, 				equipSlot, 			texture, 			vendorPrice 			= GetItemInfo(link)
 	-- slotData.name,	slotData.link	slotData.quality, 	slotData.iLevel, 	slotData.reqLevel, 	slotData.class, 	slotData.subclass, 	slotData.maxStack,     	slotData.equipSlot	slotData.texture, 	slotData.vendorPrice 	= name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
-
-
-	
-	-- [65] Transmog
-	do
-		local transmogFilter = addon:RegisterFilter('Transmog', 65, function(self, slotData)	
-			if (slotData.class == ARMOR or slotData.class == WEAPON) then
-				if isTransmog(slotData.itemId) == 3 then
-					return TRANSMOG
-				end 
-			else
-				return false
-			end
-		end)
-		transmogFilter.uiName = Transmog
-		transmogFilter.uiDesc = L['Put items categorized as Transmog in their own section.']
-	end
-	
 	-- [60] Equipment
 	do
 		local equipCategories = {
