@@ -42,16 +42,31 @@ end
 function filter:Filter(slotData)
 	-- if C_Appearance then
 		-- local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId) -- new API not in use yet
-	if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and (slotData.class == "Weapon" or slotData.class == "Armor") then
-		local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
-		if not appearanceID then
-			-- local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
-			-- if isCollected then -- unlocked
-				-- Owned = 2
-			-- else    -- unknown
-			Owned = 3
-			return "Transmog"
-			-- end
+	if APPEARANCE_ITEM_INFO then
+		if APPEARANCE_ITEM_INFO and APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and (slotData.class == "Weapon" or slotData.class == "Armor") then
+			local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
+			if not appearanceID then
+				-- local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
+				-- if isCollected then -- unlocked
+					-- Owned = 2
+				-- else    -- unknown
+				Owned = 3
+				return "Transmog"
+				-- end
+			end
+		end
+	else
+		if C_Appearance and slotData.subclass ~= "Thrown" and (slotData.class == "Weapon" or slotData.class == "Armor") then
+			local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
+			if not appearanceID then
+				-- local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
+				-- if isCollected then -- unlocked
+					-- Owned = 2
+				-- else    -- unknown
+				Owned = 3
+				return "Transmog"
+				-- end
+			end
 		end
 	end
 end
