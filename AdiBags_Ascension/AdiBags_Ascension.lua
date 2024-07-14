@@ -20,7 +20,7 @@ end
 -----------------------------------------------------------
 
 -- Register our filter with AdiBags
-local filter = addon:RegisterFilter("Ascension", 70, 'AceEvent-3.0')
+local filter = addon:RegisterFilter("Ascension", 95, 'AceEvent-3.0')
 filter.uiName = L['uiName']
 filter.uiDesc = L['UiDesc']
 
@@ -40,19 +40,40 @@ function filter:OnDisable()
 end
 
 function filter:Filter(slotData)
-	-- local AscensionItemList = {32912, 33016}
-	--777910, 121421, 1903512, 1903513, 1903515, 121422, 110000, 777999, 640542, 1777028, 121421, 121422, 777999, 110000, 1903512, 1903513, 777910, 1903515, 640542, 977028, 1777028
-	-- for k,v in pairs(AscensionItemList) do
-	-- 	if v == slotData.itemId then
-	-- 		return ASCENSION
-	-- 	end
-	-- end
+	-- Vanity items
 	if VANITY_ITEMS[slotData.id] then
 		return "Ascension"
+	-- Transmog items
+	elseif slotData.subclass ~= "Thrown" and (slotData.class == "Weapon" or slotData.class == "Armor") then
+		if APPEARANCE_ITEM_INFO[slotData.itemId] then
+			local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
+			if not appearanceID then
+				Owned = 3
+				return "Transmog"
+			end
+		elseif C_Appearance then
+			local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
+			if appearanceID then
+				local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
+				if not isCollected then
+					Owned = 3
+					return "Transmog"
+				end
+			end
+		end
 	end
-
-	if slotData.quality and slotData.quality >= 6 and slotData.name and not string.find(slotData.name, " of the ") then
-		return "Ascension"
+	-- Mythic+ items
+	if (slotData.class == "Weapon" or slotData.class == "Armor") and slotData.quality == 4 then
+		local _, description, inventoryType = GetItemInfoInstant(slotData.itemId)
+		if description and (string.find(description, "@Mythic %d") or string.find(description, "@Mythic Level")) then
+			return "Mythic+"
+		elseif description and inventoryType == 0 and string.find(description, "This token") then
+			return "Tier Token"
+		elseif description and string.find(description, "@re") then
+			return "Mystic Enchants"
+		elseif description and description then
+			return description
+		end
 	end
 end
 
