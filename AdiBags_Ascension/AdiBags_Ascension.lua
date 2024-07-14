@@ -44,14 +44,18 @@ function filter:Filter(slotData)
 	if VANITY_ITEMS[slotData.id] then
 		return "Ascension"
 	-- Transmog items
-	elseif slotData.subclass ~= "Thrown" and (slotData.class == "Weapon" or slotData.class == "Armor") then
-		if APPEARANCE_ITEM_INFO[slotData.itemId] then
+	elseif (slotData.class == "Weapon" or slotData.class == "Armor") then
+		local _, description, inventoryType = GetItemInfoInstant(slotData.itemId)
+		if description and (string.find(description, "@Mythic %d") or string.find(description, "@Mythic Level")) then
+			return "Mythic+"
+		end
+		if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" then
 			local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
 			if not appearanceID then
 				Owned = 3
 				return "Transmog"
 			end
-		elseif C_Appearance then
+		elseif C_Appearance and slotData.subclass ~= "Thrown" then
 			local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
 			if appearanceID then
 				local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
@@ -61,9 +65,8 @@ function filter:Filter(slotData)
 				end
 			end
 		end
-	end
 	-- Mythic+ items
-	if (slotData.class == "Weapon" or slotData.class == "Armor") and slotData.quality == 4 then
+	else
 		local _, description, inventoryType = GetItemInfoInstant(slotData.itemId)
 		if description and (string.find(description, "@Mythic %d") or string.find(description, "@Mythic Level")) then
 			return "Mythic+"
@@ -71,8 +74,6 @@ function filter:Filter(slotData)
 			return "Tier Token"
 		elseif description and string.find(description, "@re") then
 			return "Mystic Enchants"
-		elseif description and description then
-			return description
 		end
 	end
 end
