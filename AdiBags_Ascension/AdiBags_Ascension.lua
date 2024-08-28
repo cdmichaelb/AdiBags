@@ -40,40 +40,52 @@ function filter:OnDisable()
 end
 
 function filter:Filter(slotData)
-	-- Vanity items
-	if VANITY_ITEMS[slotData.id] then
-		return "Ascension"
+
 	-- Transmog items
-	elseif (slotData.class == "Weapon" or slotData.class == "Armor") then
-		local item = GetItemInfoInstant(slotData.itemId) -- _, description, inventoryType =
+	if (slotData.class == "Weapon" or slotData.class == "Armor") then
+		local item = GetItemInfoInstant(slotData.itemId)
 		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
-			return "Mythic+"
+			return "Mythic+", 'Equipment'
 		end
-		if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" then
+		if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and slotsData.itemId ~= 5956 then
 			local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
 			if not appearanceID then
 				Owned = 3
-				return "Transmog"
+				return "Transmog", 'Equipment'
 			end
-		elseif C_Appearance and slotData.subclass ~= "Thrown" then
+		elseif C_Appearance and slotData.subclass ~= "Thrown" and slotsData.itemId ~= 5956 then
 			local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
 			if appearanceID then
 				local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
 				if not isCollected then
 					Owned = 3
-					return "Transmog"
+					return "Transmog", 'Equipment'
 				end
 			end
 		end
 	-- Mythic+ items
 	else
-		local item = GetItemInfoInstant(slotData.itemId) --_, description, inventoryType 
+		local item = GetItemInfoInstant(slotData.itemId)
 		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
-			return "Mythic+"
-		elseif item.description and item.inventoryType == 0 and string.find(item.description, "This token") then
-			return "Tier Token"
+			return "Mythic+", 'Equipment'
+		elseif item.description and item.inventoryType == 0 and (string.find(item.description, "This Token") or string.find(item.description, "This token")) then
+			return "Tier Token", 'Equipment'
 		elseif item.description and string.find(item.description, "@re") then
 			return "Mystic Enchants"
+		end
+	end
+	-- Trade Goods equipment
+	if slotsData.itemId == 5956 or slotsData.itemId == 6219 or slotsData.itemId == 20824 or slotsData.itemId == 20815 or slotsData.itemId == 10498 or
+		slotsData.itemId == 22463 or slotsData.itemId == 22462 or slotsData.itemId == 22461 or slotsData.itemId == 16207 or slotsData.itemId == 11145 or
+		slotsData.itemId == 11130 or slotsData.itemId == 6339 or slotsData.itemId == 6218  or slotsData.itemId == 23821 then
+		return "Tools", 'Trade Goods'
+	end
+	-- Vanity items
+	if slotData.quality == 6 then
+		if VANITY_ITEMS[slotData.itemId] and VANITY_ITEMS[slotData.itemId].itemid > 0 then
+			return "Ascension"
+		else
+			return "Vanity"
 		end
 	end
 end
