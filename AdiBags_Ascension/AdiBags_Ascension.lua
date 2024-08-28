@@ -47,13 +47,13 @@ function filter:Filter(slotData)
 		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
 			return "Mythic+", 'Equipment'
 		end
-		if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and slotsData.itemId ~= 5956 then
+		if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and slotData.itemId ~= 5956 then
 			local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
 			if not appearanceID then
 				Owned = 3
 				return "Transmog", 'Equipment'
 			end
-		elseif C_Appearance and slotData.subclass ~= "Thrown" and slotsData.itemId ~= 5956 then
+		elseif C_Appearance and slotData.subclass ~= "Thrown" and slotData.itemId ~= 5956 then
 			local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
 			if appearanceID then
 				local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
@@ -75,9 +75,9 @@ function filter:Filter(slotData)
 		end
 	end
 	-- Trade Goods equipment
-	if slotsData.itemId == 5956 or slotsData.itemId == 6219 or slotsData.itemId == 20824 or slotsData.itemId == 20815 or slotsData.itemId == 10498 or
-		slotsData.itemId == 22463 or slotsData.itemId == 22462 or slotsData.itemId == 22461 or slotsData.itemId == 16207 or slotsData.itemId == 11145 or
-		slotsData.itemId == 11130 or slotsData.itemId == 6339 or slotsData.itemId == 6218  or slotsData.itemId == 23821 then
+	if slotData.itemId == 5956 or slotData.itemId == 6219 or slotData.itemId == 20824 or slotData.itemId == 20815 or slotData.itemId == 10498 or
+		slotData.itemId == 22463 or slotData.itemId == 22462 or slotData.itemId == 22461 or slotData.itemId == 16207 or slotData.itemId == 11145 or
+		slotData.itemId == 11130 or slotData.itemId == 6339 or slotData.itemId == 6218  or slotData.itemId == 23821 then
 		return "Tools", 'Trade Goods'
 	end
 	-- Vanity items
