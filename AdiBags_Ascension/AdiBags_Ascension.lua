@@ -74,8 +74,6 @@ function filter:Filter(slotData)
 			return "Tier Token"
 		elseif item.description and string.find(item.description, "@re") then
 			return "Mystic Enchants"
-		elseif item.description and item.description then
-			return item.description
 		end
 	end
 end
