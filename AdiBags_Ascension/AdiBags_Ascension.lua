@@ -45,8 +45,8 @@ function filter:Filter(slotData)
 		return "Ascension"
 	-- Transmog items
 	elseif (slotData.class == "Weapon" or slotData.class == "Armor") then
-		local _, description, inventoryType = GetItemInfoInstant(slotData.itemId)
-		if description and (string.find(description, "@Mythic %d") or string.find(description, "@Mythic Level")) then
+		local item = GetItemInfoInstant(slotData.itemId) -- _, description, inventoryType =
+		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
 			return "Mythic+"
 		end
 		if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" then
@@ -67,13 +67,15 @@ function filter:Filter(slotData)
 		end
 	-- Mythic+ items
 	else
-		local _, description, inventoryType = GetItemInfoInstant(slotData.itemId)
-		if description and (string.find(description, "@Mythic %d") or string.find(description, "@Mythic Level")) then
+		local item = GetItemInfoInstant(slotData.itemId) --_, description, inventoryType 
+		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
 			return "Mythic+"
-		elseif description and inventoryType == 0 and string.find(description, "This token") then
+		elseif item.description and item.inventoryType == 0 and string.find(item.description, "This token") then
 			return "Tier Token"
-		elseif description and string.find(description, "@re") then
+		elseif item.description and string.find(item.description, "@re") then
 			return "Mystic Enchants"
+		elseif item.description and item.description then
+			return item.description
 		end
 	end
 end
