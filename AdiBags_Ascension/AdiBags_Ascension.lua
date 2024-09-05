@@ -47,13 +47,7 @@ function filter:Filter(slotData)
 		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
 			return "Mythic+", 'Equipment'
 		end
-		if APPEARANCE_ITEM_INFO[slotData.itemId] and slotData.subclass ~= "Thrown" and slotData.itemId ~= 5956 then
-			local appearanceID = APPEARANCE_ITEM_INFO[slotData.itemId]:GetCollectedID()
-			if not appearanceID then
-				Owned = 3
-				return "Transmog", 'Equipment'
-			end
-		elseif C_Appearance and slotData.subclass ~= "Thrown" and slotData.itemId ~= 5956 then
+		if C_Appearance and slotData.subclass ~= "Thrown" and slotData.itemId ~= 5956 then
 			local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
 			if appearanceID then
 				local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
