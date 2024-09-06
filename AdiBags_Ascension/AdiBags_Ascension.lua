@@ -71,7 +71,7 @@ function filter:Filter(slotData)
 	-- Trade Goods equipment
 	if slotData.itemId == 5956 or slotData.itemId == 6219 or slotData.itemId == 20824 or slotData.itemId == 20815 or slotData.itemId == 10498 or
 		slotData.itemId == 22463 or slotData.itemId == 22462 or slotData.itemId == 22461 or slotData.itemId == 16207 or slotData.itemId == 11145 or
-		slotData.itemId == 11130 or slotData.itemId == 6339 or slotData.itemId == 6218  or slotData.itemId == 23821 then
+		slotData.itemId == 11130 or slotData.itemId == 6339 or slotData.itemId == 6218 or slotData.itemId == 23821 or slotData.itemId == 6954 then
 		return "Tools", 'Trade Goods'
 	end
 	-- Vanity items
