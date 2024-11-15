@@ -83,7 +83,6 @@ function buttonProto:OnRelease()
 	self.stack = nil
 	self.isUpgrade = nil
 	self.isDowngrade = nil
-	self.beingSold = nil
 end
 
 function buttonProto:ToString()
@@ -183,16 +182,6 @@ function buttonProto:GetStack()
 	return self.stack
 end
 
-local function SimpleButtonSlotIterator(self, slotId)
-	if not slotId and self.bag and self.slot then
-		return GetSlotId(self.bag, self.slot), self.bag, self.slot, self.itemId, self.stack
-	end
-end
-
-function buttonProto:IterateSlots()
-	return SimpleButtonSlotIterator, self
-end
-
 --------------------------------------------------------------------------------
 -- Scripts & event handlers
 --------------------------------------------------------------------------------
@@ -230,15 +219,6 @@ function buttonProto:UpdateUpgradeTexture(self)
 		upgradeTexture:Show()
 	else
 		upgradeTexture:Hide()
-	end
-end
-
-function buttonProto:UpdateSellTexture(self)
-	local sellTexture = self.sellTexture
-	if self.beingSold then
-		sellTexture:Show()
-	else
-		sellTexture:Hide()
 	end
 end
 
@@ -312,31 +292,6 @@ function buttonProto:Update()
 		self.upgradeTexture:Hide()
 	end
 
-	if self.sellTexture then
-		self.sellTexture:Hide()
-		self.sellTexture = nil
-	end
-
-
-	-- update upgrade texture for Empress Quest Assist
-	if not self.sellTexture then
-		local sellTexture = self:CreateTexture(nil, "OVERLAY")
-		--sellTexture:Hide()
-		sellTexture:SetTexture("interface\\buttons\\ui-grouploot-coin-up.blp")
-		--sellTexture:SetTexCoord(0, 1, 1, 0) -- Flip the texture vertically
-		sellTexture:SetPoint("TOP", icon, "TOPRIGHT", -10, -1)
-		--sellTexture:SetAllPoints(icon)
-		sellTexture:SetSize(18, 18)
-		--sellTexture:SetVertexColor(0, 1, 0) -- Set the color to green
-		self.sellTexture = sellTexture
-	end
-
-	if self.beingSold then
-		self.sellTexture:Show()
-	else
-		self.sellTexture:Hide()
-	end
-
 	self:UpdateCount()
 	self:UpdateBorder()
 	self:UpdateCooldown()
@@ -345,7 +300,6 @@ function buttonProto:Update()
 		self:UpdateSearch()
 	end
 	AceTimer:ScheduleTimer(function() self:UpdateUpgradeTexture(self) end, 0.5)
-	AceTimer:ScheduleTimer(function() self:UpdateSellTexture(self) end, 0.5)
 
 	addon:SendMessage('AdiBags_UpdateButton', self)
 end
@@ -649,18 +603,6 @@ end
 
 function stackProto:GetBagFamily()
 	return self.button and self.button:GetBagFamily()
-end
-
-local function StackSlotIterator(self, previous)
-	local slotId = next(self.slots, previous)
-	if slotId then
-		local bag, slot = GetBagSlotFromId(slotId)
-		local _, count = GetContainerItemInfo(bag, slot)
-		return slotId, bag, slot, self:GetItemId(), count
-	end
-end
-function stackProto:IterateSlots()
-	return StackSlotIterator, self
 end
 
 -- Reuse button methods
