@@ -27,6 +27,7 @@ function mod:OnInitialize()
 			glowColor = { 0.3, 1, 0.3, 0.7 },
 			ignoreJunk = false,			
 			glowColorRarity = false,			
+			qualityScale = 1,			
 		},
 	})
 	addon:SetCategoryOrder(L['New'], 100)
@@ -177,6 +178,16 @@ function mod:GetOptions()
 				info.handler:Set(info, ...)
 				self:UpdateBags(allBagIds, event)
 			end					
+		},
+		qualityScale = {
+			name = L['Quality color scale'],
+			type = 'range',
+			min = 1,
+			max = 10,
+			step = 0.5,
+			isPercent = false,
+			bigStep = 0.5,
+			order = 60,
 		},
 	}, addon:GetOptionHandler(self)
 end
@@ -369,17 +380,19 @@ end
 --------------------------------------------------------------------------------
 
 local function Glow_Update(glow, itemId)
-	glow:SetScale(mod.db.profile.glowScale)
-	if itemId then
-		print("Glow_Update called with itemId:", itemId)
-	else
-		print("Glow_Update called with no itemId")
-	end
+
+	local quality = select(3, GetItemInfo(itemId))
+	local r, g, b, _ = GetItemQualityColor(quality)
+	local scaling = (((quality/10) + 0.6) ^ (1 + mod.db.profile.qualityScale / 10)) -- Adjust the scaling factor as needed
 	if mod.db.profile.glowColorRarity then
-		local r, g, b, _ = GetItemQualityColor(select(3, GetItemInfo(itemId)))
 		glow.Texture:SetVertexColor(r, g, b, 0.7)
 	else
 		glow.Texture:SetVertexColor(unpack(mod.db.profile.glowColor))
+	end
+	if mod.db.profile.qualityScale > 1 then
+		glow:SetScale(mod.db.profile.glowScale * scaling)
+	else
+		glow:SetScale(mod.db.profile.glowScale)
 	end
 end
 
