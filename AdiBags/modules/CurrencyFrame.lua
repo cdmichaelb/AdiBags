@@ -101,7 +101,12 @@ do
 					return index, name, isHeader, isExpanded, isUnused, isWatched, count, extraCurrencyType, icon
 				end
 			end
-		until index > GetCurrencyListSize()
+			if index == GetCurrencyListSize()+1 then
+				return index, "Honor Points", false, false, false, false, GetHonorCurrency(), 2, "Interface\\TargetingFrame\\UI-PVP-"..UnitFactionGroup("player")
+			elseif index == GetCurrencyListSize()+2 then
+				return index, "Arena Points", false, false, false, false, GetArenaCurrency(), 1, "Interface\\PVPFrame\\PVP-ArenaPoints-Icon"
+			end
+		until index > GetCurrencyListSize()+2
 		for i, index in ipairs(collapse) do
 			ExpandCurrencyList(index, false)
 		end
@@ -146,6 +151,7 @@ function mod:Update()
     
     updating = false
 end
+
 
 function mod:GetOptions()
 	local values = {}
