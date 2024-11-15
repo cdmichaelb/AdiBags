@@ -26,6 +26,7 @@ function mod:OnInitialize()
 			glowScale = 1.5,
 			glowColor = { 0.3, 1, 0.3, 0.7 },
 			ignoreJunk = false,			
+			glowColorRarity = false,			
 		},
 	})
 	addon:SetCategoryOrder(L['New'], 100)
@@ -163,6 +164,15 @@ function mod:GetOptions()
 			name = L['Ignore low quality items'],
 			type = 'toggle',
 			order = 40,
+			set = function(info, ...)
+				info.handler:Set(info, ...)
+				self:UpdateBags(allBagIds, event)
+			end					
+		},
+		glowColorRarity = {
+			name = L['Use item quality color'],
+			type = 'toggle',
+			order = 50,
 			set = function(info, ...)
 				info.handler:Set(info, ...)
 				self:UpdateBags(allBagIds, event)
@@ -358,9 +368,19 @@ end
 -- Item glows
 --------------------------------------------------------------------------------
 
-local function Glow_Update(glow)
+local function Glow_Update(glow, itemId)
 	glow:SetScale(mod.db.profile.glowScale)
-	glow.Texture:SetVertexColor(unpack(mod.db.profile.glowColor))
+	if itemId then
+		print("Glow_Update called with itemId:", itemId)
+	else
+		print("Glow_Update called with no itemId")
+	end
+	if mod.db.profile.glowColorRarity then
+		local r, g, b, _ = GetItemQualityColor(select(3, GetItemInfo(itemId)))
+		glow.Texture:SetVertexColor(r, g, b, 0.7)
+	else
+		glow.Texture:SetVertexColor(unpack(mod.db.profile.glowColor))
+	end
 end
 
 local function CreateGlow(button)
@@ -395,11 +415,12 @@ end
 
 function mod:UpdateButton(event, button)
 	local glow = glows[button]
-	if mod.db.profile.showGlow and self:IsNew(button:GetItemId(), button.container.name) then
+	local itemId = button:GetItemId()
+	if mod.db.profile.showGlow and self:IsNew(itemId, button.container.name) then
 		if not glow then
 			glow = CreateGlow(button)
 		end
-		glow:Update()
+		glow:Update(itemId)
 		glow:Show()
 	elseif glow then
 		glow:Hide()
