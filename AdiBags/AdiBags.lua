@@ -13,6 +13,7 @@ local assert = _G.assert
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER
 local BankFrame = _G.BankFrame
 local BANK_CONTAINER = _G.BANK_CONTAINER
+local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local CloseBankFrame = _G.CloseBankFrame
 local ContainerFrame_GenerateFrame = _G.ContainerFrame_GenerateFrame
 local ContainerFrame_GetOpenFrame = _G.ContainerFrame_GetOpenFrame
@@ -63,8 +64,8 @@ addon:SetDefaultModulePrototype{Debug = addon.Debug}
 --------------------------------------------------------------------------------
 
 do
-	-- Backpack and bags
-	local BAGS = { [BACKPACK_CONTAINER] = BACKPACK_CONTAINER }
+	-- Keyring, backpack, and bag
+	local BAGS = { [KEYRING_CONTAINER] = KEYRING_CONTAINER, [BACKPACK_CONTAINER] = BACKPACK_CONTAINER }
 	for i = 1, NUM_BAG_SLOTS do BAGS[i] = i end
 
 	-- Bank bags
@@ -154,7 +155,9 @@ local DEFAULT_SETTINGS = {
 		scale = 0.8,
 		rowWidth = { ['*'] = 9 },
 		maxHeight = 0.60,
-		clickMode = 0,
+		clickMode = 1,
+		showAnchorHighlight = false,
+		showAnchorTooltip = true,
 		laxOrdering = 1,
 		qualityHighlight = true,
 		qualityOpacity = 1.0,
@@ -1019,7 +1022,7 @@ function addon:ToggleCurrentLayout()
 		self.db.profile.positionMode = 'manual'
 
 		--===== Add Message to error frame about chaning anchoring mode. =====--
-		UIErrorsFrame:AddMessage("\124cFFFFA500Manual\124r \124cff00bfffmode.\124r", 1.0, 0.0, 0.0, 53, 1);
+		UIErrorsFrame:AddMessage("\124cFFFFA500"..L["Manual"].."\124r \124cff00bfff"..L["mode."].."\124r", 1.0, 0.0, 0.0, 53, 1);
 
 
 		-- First call with a duration of 0.5 seconds to remove delay of AdiBags message.
@@ -1040,7 +1043,7 @@ function addon:ToggleCurrentLayout()
 
 	elseif self.db.profile.positionMode == 'manual' then
 
-		UIErrorsFrame:AddMessage("\124cFF00FF00Anchored\124r\124cff00bfff mode.\124r", 1.0, 0.0, 0.0, 53, 1);
+		UIErrorsFrame:AddMessage("\124cFF00FF00"..L["Anchored"].."\124r\124cff00bfff "..L["mode."].."\124r", 1.0, 0.0, 0.0, 53, 1);
 
 
 		UIErrorsFrame:SetTimeVisible(0.5)

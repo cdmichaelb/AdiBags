@@ -34,6 +34,7 @@ local GetItemInfo = _G.GetItemInfo
 local GetNumBankSlots = _G.GetNumBankSlots
 local ipairs = _G.ipairs
 local IsInventoryItemLocked = _G.IsInventoryItemLocked
+local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local next = _G.next
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS
 local NUM_BANKGENERIC_SLOTS = _G.NUM_BANKGENERIC_SLOTS
@@ -86,25 +87,29 @@ do
 		addon:Debug('FindSlotForItem', itemId, GetItemInfo(itemId), 'count=', itemCount, 'maxStack=', maxStack, 'family=', itemFamily, 'bags:', unpack(bags))
 		local bestBag, bestSlot, bestScore
 		for i, bag in pairs(bags) do
-			local scoreBonus = band(select(2, GetContainerNumFreeSlots(bag)) or 0, itemFamily) ~= 0 and maxStack or 0
-			for slot = 1, GetContainerNumSlots(bag) do
-				local texture, slotCount, locked = GetContainerItemInfo(bag, slot)
-				if not locked and (not texture or GetContainerItemID(bag, slot) == itemId) then
-					slotCount = slotCount or 0
-					if slotCount + itemCount <= maxStack then
-						local slotScore = slotCount + scoreBonus
-						if not bestScore or slotScore > bestScore then
-							addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, 'score=', slotScore, 'NEW BEST SLOT')
-							bestBag, bestSlot, bestScore = bag, slot, slotScore
-						--[===[@debug@
-						else
-							addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, 'score=', slotScore, '<', bestScore)
-						--@end-debug@]===]
+			if bag == KEYRING_CONTAINER and itemFamily ~= 256 then
+				addon:Debug('Skipping bag', bag, '(keyring): itemFamily is not 256')
+			else
+				local scoreBonus = band(bag == KEYRING_CONTAINER and 256 or select(2, GetContainerNumFreeSlots(bag)) or 0, itemFamily) ~= 0 and maxStack or 0
+				for slot = 1, GetContainerNumSlots(bag) do
+					local texture, slotCount, locked = GetContainerItemInfo(bag, slot)
+					if not locked and (not texture or GetContainerItemID(bag, slot) == itemId) then
+						slotCount = slotCount or 0
+						if slotCount + itemCount <= maxStack then
+							local slotScore = slotCount + scoreBonus
+							if not bestScore or slotScore > bestScore then
+								addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, 'score=', slotScore, 'NEW BEST SLOT')
+								bestBag, bestSlot, bestScore = bag, slot, slotScore
+								--[===[@debug@]
+                                else
+                                    addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, 'score=', slotScore, '<', bestScore)
+                                --@end-debug@]===]
+							end
+							--[===[@debug@]
+                            else
+                                addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, ': not enough space')
+                            --@end-debug@]===]
 						end
-					--[===[@debug@
-					else
-						addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, ': not enough space')
-					--@end-debug@]===]
 					end
 				end
 			end
@@ -441,7 +446,7 @@ function addon:CreateBagSlotPanel(container, name, bags, isBank)
 	local x = BAG_INSET
 	local height = 0
 	for i, bag in ipairs(bags) do
-		if bag ~= BACKPACK_CONTAINER and bag ~= BANK_CONTAINER then
+		if bag ~= KEYRING_CONTAINER and bag ~= BACKPACK_CONTAINER and bag ~= BANK_CONTAINER then
 			local button = buttonClass:Create(bag)
 			button:SetParent(self)
 			button:SetPoint("TOPLEFT", x, -TOP_PADDING)

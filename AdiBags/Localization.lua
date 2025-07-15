@@ -16,15 +16,15 @@ local tostring = _G.tostring
 --GLOBALS>
 
 local L = setmetatable({}, {
-	__index = function(self, key)
-		if key ~= nil then
-			--[===[@debug@
-			addon:Debug('Missing locale', tostring(key))
-			--@end-debug@]===]
-			rawset(self, key, tostring(key))
-		end
-		return tostring(key)
-	end,
+    __index = function(self, key)
+        if key ~= nil then
+        --[===[@debug@
+            addon:Debug('Missing locale', tostring(key))
+        --@end-debug@]===]
+            rawset(self, key, tostring(key))
+        end
+        return tostring(key)
+    end,
 })
 addon.L = L
 
@@ -83,6 +83,7 @@ L["One section per set"] = true
 L["Only one section."] = true
 L["Please note this filter matchs every item. Any filter with lower priority than this one will have no effect."] = true
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = true
+L["Put items categorized as keys in their own section."] = true
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = true
 L["Put items in sections depending on their first-level category at the Auction House."] = true
 L["Put quest-related items in their own section."] = true
@@ -284,7 +285,32 @@ L["Bag #%d"] = true
 L["Bank bag #%d"] = true
 L["Click to toggle the equipped bag panel, so you can change them."] = true
 L["Close"] = true
-
+L["Keyring"] = true
+L["Reset bag position"] = true
+L["Unlock Anchor"] = true
+L["Manual Filtering"] = true
+L["Settings"] = true
+L["Manual mode click behavior"] = true
+L["Choose how mouse clicks work in manual mode:\n\nNormal: Left-click opens menu, Shift+Left-click moves bag\nSwapped: Left-click moves bag, Shift+Left-click opens menu"] = true
+L["Normal"] = true
+L["Swapped"] = true
+L["Show anchor highlight"] = true
+L["Show green/orange highlight when hovering over bag anchors in manual mode"] = true
+L["Show anchor tooltip"] = true
+L["Show tooltip when hovering over bag anchors in both modes"] = true
+L["Anchored"] = true
+L["Mode"] = true
+L["Manual"] = true
+L["Click"] = true
+L["Shift-Click"] = true
+L["Right-Click"] = true
+L["Alt-Left-Click"] = true
+L["to toggle the anchor."] = true
+L["to open bag menu."] = true
+L["to open AdiBags options."] = true
+L["to toggle anchor mode."] = true
+L["to move bag container."] = true
+L["mode."] = true
 
 ------------------------ frFR ------------------------
 local locale = GetLocale()
@@ -395,6 +421,7 @@ L["Jewelry"] = "Joaillerie"
 L["Junk category"] = "Catégorie camelote"
 L["Keep all stacks together."] = "Conserver les piles ensembles."
 L["KEYRING_TAG"] = "Cl"
+L["Keyring"] = "Trousseau de clés"
 L["Layout priority"] = "Priorité de disposition"
 L["LDB Plugin"] = "Plugin LDB"
 L["LEATHERWORKING_BAG_TAG"] = "Cu"
@@ -428,6 +455,7 @@ L["Priority"] = "Priorité"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "Fournit une source LDB qui peut être affichée dans un addon d'affichage de LDB."
 L["Provides a text widget at top of the backpack where you can type (part of) an item name to locate it in your bags."] = "Ajoute une zone de texte en haut du sac à dos, dans laquelle vous pouvez taper le nom (même partiel) d'un objet pour le retrouver dans vos sacs."
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = "Place les objets qui peuvent être équipés (y compris les sacs) dans la section \"Equipement\"."
+L["Put items categorized as keys in their own section."] = "Mettez les éléments classés comme clés dans leur propre section." -- Needs review
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = "Place les objets appartenant à un ou plusieurs ensembles d'objet du gestionnaire d'objets dans des sections spécifiques."
 L["Put items in sections depending on their first-level category at the Auction House."] = "Répartit les objets en fonction de leur catégorie principale (premier niveau de l'Hôtel des Ventes). "
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "Place les objets de mauvaise qualité ou considéré comme camelote dans la section \"Camelote\"."
@@ -592,6 +620,7 @@ L["Items"] = "Gegenstände"
 L["Item search"] = "Suche nach Gegenständen"
 L["Jewelry"] = "Juwelier"
 L["KEYRING_TAG"] = "Schl"
+L["Keyring"] = "Schlüsselbund"
 L["Layout priority"] = "Darstellung Vorrang"
 L["LDB Plugin"] = "LBD Plugin"
 L["LEATHERWORKING_BAG_TAG"] = "Le"
@@ -622,6 +651,7 @@ L["Priority"] = "Priorität"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "Sieht vor, dass eine LDB Datenquelle von DataBroker Addons angezeigt wird"
 L["Provides a text widget at top of the backpack where you can type (part of) an item name to locate it in your bags."] = "Stellt ein Eingabefeld über der Taschenleiste zur Verfügung um einen Namen (oder Teile des Namens) eines Gegenstandes einzugeben um diesen in den Taschen zu finden."
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = "Zeigt jeden verwendbaren Gegenstand (inklusive Taschen) im \"Equipment\" Bereich."
+L["Put items categorized as keys in their own section."] = "Legen Sie als Schlüssel kategorisierte Elemente in einen eigenen Abschnitt." -- Needs review
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = "Zeigt Gegenstände die zu einem oder mehreren Sets des Ausrüstungsmanagers gehören in eigenen Bereichen an."
 L["Put items in sections depending on their first-level category at the Auction House."] = "Zeigt Gegenstände basierend auf der ersten Kategorie des Auktoinshauses in den Bereichen an"
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "Zeigt Gegenstände geringer Qualität oder als Müll gekennzeichnete Gegenstände im \"Junk\" Bereich an."
@@ -780,6 +810,7 @@ L["Items"] = "Предметы"
 L["Item search"] = "Поиск предмета"
 L["Jewelry"] = "Драгоценности"
 L["KEYRING_TAG"] = "Клч"
+L["Keyring"] = "Связка ключей"
 L["Layout priority"] = "Приоритет слоя"
 L["LDB Plugin"] = "Плагин LDB"
 L["LEATHERWORKING_BAG_TAG"] = "Кж"
@@ -810,6 +841,7 @@ L["Priority"] = "Приоритет"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "Позволяет отображать источник LDB данных другими аддонами для отображения LDB." -- Needs review
 L["Provides a text widget at top of the backpack where you can type (part of) an item name to locate it in your bags."] = "Добавляет виджет сверху окна сумок, с помощью которого, вы можете отыскать вещь, вводя ее название (или его часть) в специальное поле."
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = "Поместить все предметы которые могут быть одеты на персонажа (включая сумки) в секцию \"Экипировка\""
+L["Put items categorized as keys in their own section."] = "Поместите элементы, отнесенные к категории ключей, в отдельный раздел." -- Needs review
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = "Помещает вещи, являющиеся частью одного из наборов, созданных с помощью управления экипировкой, в отдельные секции."
 L["Put items in sections depending on their first-level category at the Auction House."] = "Раскладывать вещи в сумках, используя общие категории аукциона."
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "Поместить предметы низкого качества или помеченных как хлам с секцию \"Хлам\"."
@@ -862,6 +894,31 @@ L["Tooltip information"] = "Информация подсказки"
 L["Track new items"] = "Следить за новыми предметами"
 L["Track new items in each bag, displaying a glowing aura over them and putting them in a special section. \"New\" status can be reset by clicking on the small \"N\" button at top left of bags."] = "Отслеживать новые предметы в каждой сумке, подсвечивать их и помещать в отдельную секцию. Статус \"Новое\" может быть сброшен кликом по небольшой кнопке \"N\" находящейся, в верхней левой стороне окна сумок."
 L["Uncheck this to disable AdiBags."] = "Снимите галочку штобы выключить AdiBags."
+L["Reset bag position"] = "Сброс позиции сумки"
+L["Unlock Anchor"] = "Разблокировать якорь"
+L["Manual Filtering"] = "Ручная фильтрация"
+L["Settings"] = "Настройки"
+L["Manual mode click behavior"] = "Поведение кликов в ручном режиме"
+L["Choose how mouse clicks work in manual mode:\n\nNormal: Left-click opens menu, Shift+Left-click moves bag\nSwapped: Left-click moves bag, Shift+Left-click opens menu"] = "Выберите как работают клики мыши в ручном режиме:\n\nОбычный: Левый клик открывает меню, Shift+Левый клик перемещает сумку\nПереключенный: Левый клик перемещает сумку, Shift+Левый клик открывает меню"
+L["Normal"] = "Обычный"
+L["Swapped"] = "Переключенный"
+L["Show anchor highlight"] = "Подсветка якоря"
+L["Show green/orange highlight when hovering over bag anchors in manual mode"] = "Зеленая/оранжевая подсветка при наведении на якорь в ручном режиме"
+L["Show anchor tooltip"] = "Подсказка якоря"
+L["Show tooltip when hovering over bag anchors in both modes"] = "Показывать подсказку при наведении на якорь в обоих режимах"
+L["Anchored"] = "Якорный"
+L["Mode"] = "Режим"
+L["Manual"] = "Ручной"
+L["Click"] = "Клик"
+L["Shift-Click"] = "Shift-Клик"
+L["Right-Click"] = "Правый клик"
+L["Alt-Left-Click"] = "Alt-Левый клик"
+L["to toggle the anchor."] = "переключить якорь."
+L["to open bag menu."] = "открыть меню сумки."
+L["to open AdiBags options."] = "открыть настройки AdiBags."
+L["to toggle anchor mode."] = "переключить режим якоря."
+L["to move bag container."] = "переместить контейнер сумки."
+L["mode."] = "режим."
 L["Unlock anchor"] = "Разблок. якорь"
 L["Use this section to define any item-section association."] = "Использовать эту секцию, для определения любой связной с ней секцией" -- Needs review
 L["Use this to adjust the bag scale."] = "Регулировка масштаба сумок."
@@ -930,6 +987,8 @@ L["Highlight scale"] = "resaltar la escala"
 L["Item category"] = "Categoria del objeto"
 L["Items"] = "Objetos"
 L["Item search"] = "Busqueda de objetos."
+L["KEYRING_TAG"] = "Llv"
+L["Keyring"] = "Llaves"
 L["LDB Plugin"] = "Load Data Base plugin   - Carga base datos accesorio"
 L["Lock anchor"] = "Bloquear anclaje"
 L["Manual filtering"] = "Filtro manual"
@@ -946,6 +1005,7 @@ L["Priority"] = "Prioridad"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "Proporciona una fuente de datos de Carga que se muestran en el panel del ayudante LDB.(loaddatabase)"
 L["Provides a text widget at top of the backpack where you can type (part of) an item name to locate it in your bags."] = "Proporciona un campo de texto en la parte superior de la mochila en la que puede escribir (parte de) un nombre de un objeto para ubicar en su bolsa"
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = "Ponga cualquier elemento que puede ser equipado (incluyendo las bolsas) en la sección \"equipo\" ."
+L["Put items categorized as keys in their own section."] = "Coloque los elementos categorizados como claves en su propia sección." -- Needs review
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = "Coloca los artículos pertenecientes a uno o más conjuntos del gestor de equipamiento en secciones específicas."
 L["Put items in sections depending on their first-level category at the Auction House."] = "Coloca los artículos en las secciones en función de su primer nivel de categoría de la casa de subastas."
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "Coloca los artículos de mala calidad o etiquetados como basura en la sección \"basura\" ."
@@ -1069,6 +1129,7 @@ L["Jewelry"] = "飾品"
 L["Junk category"] = "垃圾" -- Needs review
 L["Keep all stacks together."] = "保持全部堆疊合起來。"
 L["KEYRING_TAG"] = "Ke"
+L["Keyring"] = "鑰匙圈"
 L["Layout priority"] = "優先佈局"
 L["LDB Plugin"] = "LDB 插件"
 L["LEATHERWORKING_BAG_TAG"] = "Le"
@@ -1100,6 +1161,7 @@ L["Plugins"] = "插件"
 L["Position mode"] = "位置模式"
 L["Priority"] = "優先順序"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "提供LDB顯示插件的資料來源"
+L["Put items categorized as keys in their own section."] = "將分類為鍵的項目放在它們自己的部分中。" -- Needs review
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "將不良品質或垃圾裝備放置於垃圾區段"
 L["Put quest-related items in their own section."] = "將任務相關物品置入相關區塊"
 L["Quality highlight"] = "品質高亮"
@@ -1266,6 +1328,7 @@ L["Jewelry"] = "饰品"
 L["Junk category"] = "垃圾"
 L["Keep all stacks together."] = "将所有堆叠合并"
 L["KEYRING_TAG"] = "钥"
+L["Keyring"] = "钥匙链"
 L["Layout priority"] = "优先布局"
 L["LDB Plugin"] = "LDB 组件"
 L["LEATHERWORKING_BAG_TAG"] = "皮"
@@ -1299,6 +1362,7 @@ L["Priority"] = "优先级"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "给 LDB 提供数据资料, 以便符合 LDB 规范的插件使用."
 L["Provides a text widget at top of the backpack where you can type (part of) an item name to locate it in your bags."] = "在背包顶部提供文本输入框, 键入(部分)物品名称在背包中查找."
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = "放置可装备物品至[装备]分组"
+L["Put items categorized as keys in their own section."] = "将归类为键的项目放在它们自己的部分中。" -- Needs review
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = "按装备管理设置的套装分组放置物品"
 L["Put items in sections depending on their first-level category at the Auction House."] = "按拍卖行主类型规则分组放置物品."
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "将低品质或者垃圾物品放入[垃圾]分组"
@@ -1474,7 +1538,8 @@ L["Items in this list are never considered as junk. Click an item to remove it f
 L["Jewelry"] = "보석류"
 L["Junk category"] = "잡동사니 분류"
 L["Keep all stacks together."] = "모든 겹치기를 동시에 유지합니다."
-L["KEYRING_TAG"] = "열"
+L["KEYRING_TAG"] = "열쇠"
+L["Keyring"] = "열쇠고리"
 L["Layout priority"] = "레이아웃 우선순위"
 L["LDB Plugin"] = "LDB 플러그인"
 L["LEATHERWORKING_BAG_TAG"] = "가세"
@@ -1508,6 +1573,7 @@ L["Priority"] = "우선순위"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "LDB 표시 애드온에 의해 표시될 수 있도록 LDB 자료 출처를 제공합니다. "
 L["Provides a text widget at top of the backpack where you can type (part of) an item name to locate it in your bags."] = "가방 상단에 가방 안에 위치시키기 위해 아이템 이름(의 일부)을 입력할 수 있는 문자 장치를 제공합니다."
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = "착용할 수 있는 모든 아이템(가방을 포함한)을 \"착용 장비\" 항목에 집어 넣습니다."
+L["Put items categorized as keys in their own section."] = "키로 분류 된 항목을 자체 섹션에 넣습니다." -- Needs review
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = "내장된 장비 관리창의 하나 혹은 그 이상의 세트에 속해 있는 아이템을 해당 항목에 집어 넣습니다."
 L["Put items in sections depending on their first-level category at the Auction House."] = "경매장에서 그것의 첫번째 레벨 분류에 의존하는 항목안에 아이템을 집어 넣습니다."
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "하위 품질 혹은 잡동사니로 이름 붙여진 아이템을 \"잡동사니\" 항목에 집어 넣습니다."
@@ -1683,7 +1749,8 @@ L["Items in this list are never considered as junk. Click an item to remove it f
 L["Jewelry"] = "Jóias"
 L["Junk category"] = "Categoria de sucata"
 L["Keep all stacks together."] = "Manter todas as pilhas juntas"
-L["KEYRING_TAG"] = "CHAVES"
+L["KEYRING_TAG"] = "Ch"
+L["Keyring"] = "Chaveiro"
 L["Layout priority"] = "Prioridade do layout"
 L["LDB Plugin"] = "Plugin LDB"
 L["LEATHERWORKING_BAG_TAG"] = "BOLSAS_COURARIA"
@@ -1717,6 +1784,7 @@ L["Priority"] = "Prioridade"
 L["Provides a LDB data source to be displayed by LDB display addons."] = "Fornece uma fonte LDB para ser exibida por LDB addons"
 L["Provides a text widget at top of the backpack where you can type (part of) an item name to locate it in your bags."] = "Fornece um espaço para texto no topo da mochila onde você pode escrever (parte de) um nome de item para localizá-lo em suas bolsas"
 L["Put any item that can be equipped (including bags) into the \"Equipment\" section."] = "Põe qualquer item que pode ser equipado (incluindo bolsas) na categoria \"equipamento\""
+L["Put items categorized as keys in their own section."] = "Coloque os itens categorizados como chaves em sua própria seção." -- Needs review
 L["Put items belonging to one or more sets of the built-in gear manager in specific sections."] = "Põe itens pertencentes a um ou mais sets do gerenciador de equipamentos padrão em seções específicas"
 L["Put items in sections depending on their first-level category at the Auction House."] = "Põe itens em seções dependendo da categoria inicial na Casa de Leilões"
 L["Put items of poor quality or labeled as junk in the \"Junk\" section."] = "Põe itens de qualidade inferior ou rotulados como sucata na seção \"Sucata\" "
@@ -1791,4 +1859,8 @@ end
 -- @noloc]]
 
 -- Replace remaining true values by their key
-for k,v in pairs(L) do if v == true then L[k] = k end end
+for k, v in pairs(L) do
+    if v == true then
+        L[k] = k
+    end
+end

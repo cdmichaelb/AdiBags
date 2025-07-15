@@ -26,6 +26,7 @@ local GetItemFamily = _G.GetItemFamily
 local GetItemInfo = _G.GetItemInfo
 local GetMerchantItemLink = _G.GetMerchantItemLink
 local ipairs = _G.ipairs
+local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local max = _G.max
 local next = _G.next
 local NUM_BAG_SLOTS = _G.NUM_BAG_SLOTS
@@ -235,12 +236,12 @@ function containerProto:OnCreate(name, bagIds, isBank)
 		--===== Create Tooltip for Anchored Bag Menu =====--
 		local function ShowTooltipAnchored()
 			GameTooltip:SetOwner(AdiBagsBagMenu, "ANCHOR_TOPLEFT", -25, 8)
-			GameTooltip:SetText("\124cFF00FF00                      Anchored\124r\124cff00bfff Mode\124r")
+			GameTooltip:SetText("\124cFF00FF00"..L["Anchored"].."\124r\124cff00bfff "..L["Mode"].."\124r")
 			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to open bag menu.|r")
-			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to toggle the anchor.|r")			
-			GameTooltip:AddLine("|cffeda55fRight-Click|r |cff99ff00to open AdiBags options.|r")
-			GameTooltip:AddLine("|cffeda55fAlt-Left-Click|r |cff99ff00to toggle anchor mode.|r")				
+			GameTooltip:AddLine("|cffeda55f"..L["Click"].."|r |cff99ff00"..L["to toggle the anchor."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Shift-Click"].."|r |cff99ff00"..L["to open bag menu."].."|r")			
+			GameTooltip:AddLine("|cffeda55f"..L["Right-Click"].."|r |cff99ff00"..L["to open AdiBags options."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Alt-Left-Click"].."|r |cff99ff00"..L["to toggle anchor mode."].."|r")				
 			GameTooltip:SetBackdropColor(0, 0, 0, 1) -- Change the alpha value here
 			GameTooltip:Show()
 		end
@@ -260,7 +261,7 @@ function containerProto:OnCreate(name, bagIds, isBank)
 		border:SetTexture(0.4, 0.4, 0.4, 0) -- gray border
 
 		-- set the frame strata to be higher than the title text's strata
-		AdiBagsBagMenu:SetFrameStrata("DIALOG")
+		AdiBagsBagMenu:SetFrameStrata("HIGH")
 		AdiBagsBagMenu:SetFrameLevel(100)
 
 		-- add function to hide tooltip
@@ -291,20 +292,22 @@ function containerProto:OnCreate(name, bagIds, isBank)
 				local threshold = 200 -- adjust this value to change the distance from the top edge
 
 
-				if y > screenHeight - threshold and not IsAltKeyDown() and not IsShiftKeyDown() and GetTime() - (self.lastClickTime or 0) < 1 then
+				if y > screenHeight - threshold and not IsAltKeyDown() and IsShiftKeyDown() and GetTime() - (self.lastClickTime or 0) < 1 then
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipAnchored()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipAnchored()
+   					end
 
 
-				elseif y > screenHeight - threshold and not IsAltKeyDown() and not IsShiftKeyDown() then -- if the cursor is within the "threshold" distance
+				elseif y > screenHeight - threshold and not IsAltKeyDown() and IsShiftKeyDown() then -- if the cursor is within the "threshold" distance
 
 					self.lastClickTime = GetTime()
 					EasyMenu(menuList, menuFrame, "AdiBagsBagMenu", 0, 0, "MENU", 2)
 
 
-				elseif IsShiftKeyDown() then
+				elseif not IsShiftKeyDown() and not IsAltKeyDown() then
 
 					addon:ToggleAnchor()
 					CloseMenus()
@@ -316,13 +319,15 @@ function containerProto:OnCreate(name, bagIds, isBank)
 					self.lastClickTime = 0
 
 
-				elseif button == "LeftButton" and GetTime() - (self.lastClickTime or 0) < 1 then
+				elseif button == "LeftButton" and IsShiftKeyDown() and GetTime() - (self.lastClickTime or 0) < 1 then
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipAnchored()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipAnchored()
+   					end
 
-				elseif button == "LeftButton" then
+				elseif button == "LeftButton" and IsShiftKeyDown() then
 
 					self.lastClickTime = GetTime()
 					EasyMenu(menuList, menuFrame, "AdiBagsBagMenu", -23, 146, "MENU", 2)
@@ -335,14 +340,22 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
 
 		AdiBagsBagMenu:SetScript("OnEnter", function()
-			background:SetTexture(0, 1, 0, 0.5)
-			ShowTooltipAnchored()
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(0, 1, 0, 0.5)
+			end
+			if addon.db.profile.showAnchorTooltip then
+				ShowTooltipAnchored()
+			end
 		end)
 
 
 		AdiBagsBagMenu:SetScript("OnLeave", function()
-			background:SetTexture(0, 1, 0, 0)
-			GameTooltip:Hide()
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(0, 1, 0, 0)
+			end
+			if addon.db.profile.showAnchorTooltip then
+				GameTooltip:Hide()
+			end
 		end)
 
 		AdiBagsBagMenu:EnableMouse(true)
@@ -362,19 +375,19 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
 		local function ShowTooltipManual()
 			GameTooltip:SetOwner(anchor, "ANCHOR_TOPLEFT", -25, 8)
-			GameTooltip:SetText("\124cFFFFA500                          Manual\124r \124cff00bfffMode\124r")
+			GameTooltip:SetText("\124cFFFFA500"..L["Manual"].."\124r \124cff00bfff"..L["Mode"].."\124r")
 			GameTooltip:AddLine(" ")
 			if addon.db.profile.clickMode == 0 then
-			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to open bag menu.|r")
-			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to move bag container.|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Click"].."|r |cff99ff00"..L["to open bag menu."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Shift-Click"].."|r |cff99ff00"..L["to move bag container."].."|r")
 			else
 
-			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to move bag container.|r")
-			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to open bag menu.|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Click"].."|r |cff99ff00"..L["to move bag container."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Shift-Click"].."|r |cff99ff00"..L["to open bag menu."].."|r")
 			end
 
-			GameTooltip:AddLine("|cffeda55fRight-Click|r |cff99ff00to open AdiBags options.|r")
-			GameTooltip:AddLine("|cffeda55fAlt-Left-Click|r |cff99ff00to toggle anchor mode.|r")	
+			GameTooltip:AddLine("|cffeda55f"..L["Right-Click"].."|r |cff99ff00"..L["to open AdiBags options."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Alt-Left-Click"].."|r |cff99ff00"..L["to toggle anchor mode."].."|r")	
 			GameTooltip:SetBackdropColor(0, 0, 0, 1) -- Change the alpha value here
 			GameTooltip:Show()
 		end
@@ -393,7 +406,7 @@ function containerProto:OnCreate(name, bagIds, isBank)
 		border:SetTexture(0.4, 0.4, 0.4, 0) -- gray border
 
 		-- set the frame strata to be higher than the title text's strata
-		anchor:SetFrameStrata("DIALOG")
+		anchor:SetFrameStrata("HIGH")
 		anchor:SetFrameLevel(100)
 
 		-- add function to hide tooltip
@@ -451,7 +464,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 				if not self.isMovingContainer then 
 
 					CloseMenus()
-					ShowTooltipManual()
+					if addon.db.profile.showAnchorTooltip then
+						ShowTooltipManual()
+					end
 
 				end
 
@@ -468,7 +483,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 
 				elseif y > screenHeight - threshold and not IsAltKeyDown() and not IsShiftKeyDown() then 
@@ -480,7 +497,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 				elseif button == "LeftButton" then
 
@@ -502,7 +521,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 
 				elseif addon.db.profile.clickMode == 1 and y > screenHeight - threshold and not IsAltKeyDown() and IsShiftKeyDown() then 
@@ -514,7 +535,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 				elseif addon.db.profile.clickMode == 1 and button == "LeftButton" and IsShiftKeyDown() then
 
@@ -528,14 +551,22 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
 
 		anchor:SetScript("OnEnter", function()
-			background:SetTexture(1, 0.5, 0, 0.5)
-			ShowTooltipManual()
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(1, 0.5, 0, 0.5)
+			end
+			if addon.db.profile.showAnchorTooltip then
+				ShowTooltipManual()
+			end
 		end)
 
 
 		anchor:SetScript("OnLeave", function()
-			background:SetTexture(0, 1, 0, 0)
-			GameTooltip:Hide()
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(0, 1, 0, 0)
+			end
+			if addon.db.profile.showAnchorTooltip then
+				GameTooltip:Hide()
+			end
 		end)
 
 
@@ -730,7 +761,7 @@ local function FindBagWithRoom(self, itemFamily)
 	for bag in pairs(self.bagIds) do
 		local numFree, family = GetContainerNumFreeSlots(bag)
 		if numFree and numFree > 0 then
-			if band(family, itemFamily) ~= 0 then
+			if band(bag == KEYRING_CONTAINER and 256 or family, itemFamily) ~= 0 then
 				return bag
 			elseif not fallback then
 				fallback = bag
@@ -841,45 +872,56 @@ function containerProto:UpdateContent(bag)
 	local content = self.content[bag]
 	local newSize = GetContainerNumSlots(bag)
 	local _, bagFamily = GetContainerNumFreeSlots(bag)
+	bagFamily = bag == KEYRING_CONTAINER and 256 or bagFamily
 	content.family = bagFamily
 	for slot = 1, newSize do
 		local itemId = GetContainerItemID(bag, slot)
-		local link = GetContainerItemLink(bag, slot)
-		if not itemId or (link and IsValidItemLink(link)) then
-			local slotData = content[slot]
-			if not slotData then
-				slotData = {
-					bag = bag,
-					slot = slot,
-					slotId = GetSlotId(bag, slot),
-					bagFamily = bagFamily,
-					count = 0,
-					isBank = self.isBank,
-				}
-				content[slot] = slotData
+		-- Explicitly clear empty keyring slots to remove ghost buttons
+		if bag == KEYRING_CONTAINER and not itemId then
+			if content[slot] then
+				removed[content[slot].slotId] = content[slot].link
+				content[slot] = nil
 			end
 
-			local name, count, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
-			if link then
-				name, _, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(link)
-				count = select(2, GetContainerItemInfo(bag, slot)) or 0
-			else
-				link, count = false, 0
-			end
+		else
+			-- ✅ Normal item handling logic
+			local link = GetContainerItemLink(bag, slot)
+			if not itemId or (link and IsValidItemLink(link)) then
+				local slotData = content[slot]
+				if not slotData then
+					slotData = {
+						bag = bag,
+						slot = slot,
+						slotId = GetSlotId(bag, slot),
+						bagFamily = bagFamily,
+						count = 0,
+						isBank = self.isBank,
+					}
+					content[slot] = slotData
+				end
 
-			if GetDistinctItemID(slotData.link) ~= GetDistinctItemID(link) then
-				removed[slotData.slotId] = slotData.link
-				slotData.count = count
-				slotData.link = link
-				slotData.itemId = itemId
-				slotData.name, slotData.quality, slotData.iLevel, slotData.reqLevel, slotData.class, slotData.subclass, slotData.equipSlot, slotData.texture, slotData.vendorPrice = name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
-				slotData.maxStack = maxStack or (link and 1 or 0)
-				added[slotData.slotId] = slotData
-			elseif slotData.count ~= count then
-				slotData.count = count
-				changed[slotData.slotId] = slotData
-			end
-		end
+				local name, count, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
+				if link then
+					name, _, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(link)
+					count = select(2, GetContainerItemInfo(bag, slot)) or 0
+				else
+					link, count = false, 0
+				end
+
+				if GetDistinctItemID(slotData.link) ~= GetDistinctItemID(link) then
+					removed[slotData.slotId] = slotData.link
+					slotData.count = count
+					slotData.link = link
+					slotData.itemId = itemId
+					slotData.name, slotData.quality, slotData.iLevel, slotData.reqLevel, slotData.class, slotData.subclass, slotData.equipSlot, slotData.texture, slotData.vendorPrice = name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
+					slotData.maxStack = maxStack or (link and 1 or 0)
+					added[slotData.slotId] = slotData
+				elseif slotData.count ~= count then
+					slotData.count = count
+					changed[slotData.slotId] = slotData
+				end
+			end -- if not itemId or valid link
+		end -- skip empty keyring
 	end
 	for slot = content.size, newSize + 1, -1 do
 		local slotData = content[slot]
@@ -921,7 +963,9 @@ end
 local function FilterByBag(slotData)
 	local bag = slotData.bag
 	local name
-	if bag == BACKPACK_CONTAINER then
+	if bag == KEYRING_CONTAINER then
+		name = L['Keyring']
+	elseif bag == BACKPACK_CONTAINER then
 		name = L['Backpack']
 	elseif bag == BANK_CONTAINER then
 		name = L['Bank']

@@ -26,8 +26,6 @@ function mod:OnInitialize()
 			glowScale = 1.5,
 			glowColor = { 0.3, 1, 0.3, 0.7 },
 			ignoreJunk = false,			
-			glowColorRarity = false,			
-			qualityScale = 1,			
 		},
 	})
 	addon:SetCategoryOrder(L['New'], 100)
@@ -169,25 +167,6 @@ function mod:GetOptions()
 				info.handler:Set(info, ...)
 				self:UpdateBags(allBagIds, event)
 			end					
-		},
-		glowColorRarity = {
-			name = L['Use item quality color'],
-			type = 'toggle',
-			order = 50,
-			set = function(info, ...)
-				info.handler:Set(info, ...)
-				self:UpdateBags(allBagIds, event)
-			end					
-		},
-		qualityScale = {
-			name = L['Quality color scale'],
-			type = 'range',
-			min = 1,
-			max = 10,
-			step = 0.5,
-			isPercent = false,
-			bigStep = 0.5,
-			order = 60,
 		},
 	}, addon:GetOptionHandler(self)
 end
@@ -379,21 +358,9 @@ end
 -- Item glows
 --------------------------------------------------------------------------------
 
-local function Glow_Update(glow, itemId)
-
-	local quality = select(3, GetItemInfo(itemId))
-	local r, g, b, _ = GetItemQualityColor(quality)
-	local scaling = (((quality/10) + 0.6) ^ (1 + mod.db.profile.qualityScale / 10)) -- Adjust the scaling factor as needed
-	if mod.db.profile.glowColorRarity then
-		glow.Texture:SetVertexColor(r, g, b, 0.7)
-	else
-		glow.Texture:SetVertexColor(unpack(mod.db.profile.glowColor))
-	end
-	if mod.db.profile.qualityScale > 1 then
-		glow:SetScale(mod.db.profile.glowScale * scaling)
-	else
-		glow:SetScale(mod.db.profile.glowScale)
-	end
+local function Glow_Update(glow)
+	glow:SetScale(mod.db.profile.glowScale)
+	glow.Texture:SetVertexColor(unpack(mod.db.profile.glowColor))
 end
 
 local function CreateGlow(button)
@@ -428,12 +395,11 @@ end
 
 function mod:UpdateButton(event, button)
 	local glow = glows[button]
-	local itemId = button:GetItemId()
-	if mod.db.profile.showGlow and self:IsNew(itemId, button.container.name) then
+	if mod.db.profile.showGlow and self:IsNew(button:GetItemId(), button.container.name) then
 		if not glow then
 			glow = CreateGlow(button)
 		end
-		glow:Update(itemId)
+		glow:Update()
 		glow:Show()
 	elseif glow then
 		glow:Hide()

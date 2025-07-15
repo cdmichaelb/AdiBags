@@ -33,20 +33,22 @@ function addon:SetupDefaultFilters()
 	local RECIPE = BI['Recipe']
 	local TRADE_GOODS = BI['Trade Goods']
 	local WEAPON = BI["Weapon"]
-	local ARMOR =  BI["Armor"]
+	local ARMOR = BI["Armor"]
+	local KEY = L['Keyring']
 	local JEWELRY = L["Jewelry"]
 	local EQUIPMENT = L['Equipment']
 	local AMMUNITION = L['Ammunition']
 
 	-- Define global ordering
-	self:SetCategoryOrders{
+	self:SetCategoryOrders {
 		[QUEST] = 30,
 		[TRADE_GOODS] = 20,
 		[EQUIPMENT] = 10,
 		[CONSUMMABLE] = -10,
 		[MISCELLANEOUS] = -20,
 		[AMMUNITION] = -30,
-		[JUNK] = -40,
+		[KEY] = -40,
+		[JUNK] = -50,
 	}
 
 	-- [90] Parts of an equipment set
@@ -168,6 +170,20 @@ function addon:SetupDefaultFilters()
 			}, addon:GetOptionHandler(self, true)
 		end
 
+	end
+
+
+	-- [90] Key
+	do
+		local keyFilter = addon:RegisterFilter('Key', 90, function(self, slotData)
+			if slotData.bagFamily == 256 or slotData.class == KEY or slotData.subclass == KEY then
+				return KEY
+			else
+				return false
+			end
+		end)
+		keyFilter.uiName = KEY
+		keyFilter.uiDesc = L['Put items categorized as keys in their own section.']
 	end
 
 	-- [75] Quest Items
