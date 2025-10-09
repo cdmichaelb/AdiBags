@@ -9,6 +9,33 @@ local _, ns = ...
 local addon = LibStub('AceAddon-3.0'):GetAddon('AdiBags')
 local L = setmetatable({}, {__index = addon.L})
 
+local tooltip = CreateFrame('GameTooltip', 'AdiBagsAscensionTooltip', nil, 'GameTooltipTemplate')
+
+local tooltipLines = {}
+local function GetTooltipLines(link)
+        wipe(tooltipLines)
+
+        if not link then
+                return tooltipLines
+        end
+
+        tooltip:SetOwner(UIParent or WorldFrame, 'ANCHOR_NONE')
+        tooltip:ClearLines()
+        tooltip:SetHyperlink(link)
+
+        for i = 2, tooltip:NumLines() do
+                local leftLine = _G['AdiBagsAscensionTooltipTextLeft' .. i]
+                local text = leftLine and leftLine:GetText()
+                if text and text ~= '' then
+                        tooltipLines[#tooltipLines + 1] = text
+                end
+        end
+
+        tooltip:Hide()
+
+        return tooltipLines
+end
+
 do -- Localization
 	L["uiName"] = "Ascension filter"
 	L["UiDesc"] = "Putting items that are from Ascension in a specific section."
@@ -40,34 +67,56 @@ function filter:OnDisable()
 end
 
 function filter:Filter(slotData)
+        local equipSlot = slotData.equipSlot
+        if not equipSlot then
+                local _, _, _, _, _, _, _, _, fetchedSlot = GetItemInfo(slotData.itemId)
+                equipSlot = fetchedSlot or ''
+        end
 
-	-- Transmog items
-	if (slotData.class == "Weapon" or slotData.class == "Armor") then
-		local item = GetItemInfoInstant(slotData.itemId)
-		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
-			return "Mythic+", 'Equipment'
-		end
-		if C_Appearance and slotData.subclass ~= "Thrown" and slotData.itemId ~= 5956 then
-			local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
-			if appearanceID then
-				local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
-				if not isCollected then
-					Owned = 3
-					return "Transmog", 'Equipment'
-				end
-			end
-		end
-	-- Mythic+ items
-	else
-		local item = GetItemInfoInstant(slotData.itemId)
-		if item.description and (string.find(item.description, "@Mythic %d") or string.find(item.description, "@Mythic Level")) then
-			return "Mythic+", 'Equipment'
-		elseif item.description and item.inventoryType == 0 and (string.find(item.description, "This Token") or string.find(item.description, "This token")) then
-			return "Tier Token", 'Equipment'
-		elseif item.description and string.find(item.description, "@re") then
-			return "Mystic Enchants"
-		end
-	end
+        local tooltipText = GetTooltipLines(slotData.link)
+
+        local function tooltipContains(pattern)
+                for i = 1, #tooltipText do
+                        if string.find(tooltipText[i], pattern) then
+                                return true
+                        end
+                end
+                return false
+        end
+
+        local function tooltipContainsAny(patterns)
+                for i = 1, #patterns do
+                        if tooltipContains(patterns[i]) then
+                                return true
+                        end
+                end
+                return false
+        end
+
+        -- Transmog items
+        if (slotData.class == "Weapon" or slotData.class == "Armor") then
+                if tooltipContainsAny({"@Mythic %d", "@Mythic Level"}) then
+                        return "Mythic+", 'Equipment'
+                end
+                if C_Appearance and C_AppearanceCollection and slotData.subclass ~= "Thrown" and slotData.itemId ~= 5956 then
+                        local appearanceID = C_Appearance.GetItemAppearanceID(slotData.itemId)
+                        if appearanceID then
+                                local isCollected = C_AppearanceCollection.IsAppearanceCollected(appearanceID)
+                                if not isCollected then
+                                        return "Transmog", 'Equipment'
+                                end
+                        end
+                end
+        -- Mythic+ items
+        else
+                if tooltipContainsAny({"@Mythic %d", "@Mythic Level"}) then
+                        return "Mythic+", 'Equipment'
+                elseif (equipSlot == '' or equipSlot == nil) and tooltipContainsAny({"This Token", "This token"}) then
+                        return "Tier Token", 'Equipment'
+                elseif tooltipContains("@re") then
+                        return "Mystic Enchants"
+                end
+        end
 	-- Trade Goods equipment
 	if slotData.itemId == 5956 or slotData.itemId == 6219 or slotData.itemId == 20824 or slotData.itemId == 20815 or slotData.itemId == 10498 or
 		slotData.itemId == 22463 or slotData.itemId == 22462 or slotData.itemId == 22461 or slotData.itemId == 16207 or slotData.itemId == 11145 or
@@ -76,13 +125,13 @@ function filter:Filter(slotData)
 		return "Tools", 'Trade Goods'
 	end
 	-- Vanity items
-	if slotData.quality == 6 then
-		if VANITY_ITEMS[slotData.itemId] and VANITY_ITEMS[slotData.itemId].itemid > 0 then
-			return "Ascension"
-		else
-			return "Vanity"
-		end
-	end
+        if slotData.quality == 6 then
+                if VANITY_ITEMS and VANITY_ITEMS[slotData.itemId] and VANITY_ITEMS[slotData.itemId].itemid > 0 then
+                        return "Ascension"
+                else
+                        return "Vanity"
+                end
+        end
 end
 
 function filter:GetFilterOptions()
