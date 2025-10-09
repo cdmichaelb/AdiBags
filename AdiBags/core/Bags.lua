@@ -26,6 +26,7 @@ local L = addon.L
 local _G = _G
 local BankFrame = _G.BankFrame
 local CloseBankFrame = _G.CloseBankFrame
+local CloseGuildBankFrame = _G.CloseGuildBankFrame
 local ipairs = _G.ipairs
 local pairs = _G.pairs
 local setmetatable = _G.setmetatable
@@ -239,38 +240,47 @@ do
 
 		BankFrame:SetParent(UIHider)
 
-		if addon:GetInteractingWindow() == "BANKFRAME" then
-			self:Open()
-		end
-	end
+                if addon:IsBankInteraction(addon:GetInteractingWindow()) then
+                        self:Open()
+                end
+        end
 
-	function bank:PostDisable()
+        function bank:PostDisable()
 		if addon:GetInteractingWindow() == "BANKFRAME" then
 			self.hooks[BankFrame].Show(BankFrame)
 		end
 		BankFrame:SetParent(UIParent)
 	end
 
-	function bank:AdiBags_InteractingWindowChanged(event, new, old)
-		if new == 'BANKFRAME' and not self:IsOpen() then
-			self:Open()
-		elseif old == 'BANKFRAME' and self:IsOpen() then
-			self:Close()
-		end
-	end
+        function bank:AdiBags_InteractingWindowChanged(event, new, old)
+                if addon:IsBankInteraction(new) and not self:IsOpen() then
+                        self:Open()
+                elseif addon:IsBankInteraction(old) and self:IsOpen() then
+                        self:Close()
+                end
+        end
 
-	function bank:CanOpen()
-		return self:IsEnabled() and addon:GetInteractingWindow() == "BANKFRAME"
-	end
+        function bank:CanOpen()
+                return self:IsEnabled() and addon:IsBankInteraction(addon:GetInteractingWindow())
+        end
 
-	function bank:PreOpen()
-		self.hooks[BankFrame].Show(BankFrame)
-	end
+        function bank:PreOpen()
+                self.activeInteraction = addon:GetInteractingWindow()
+                if self.activeInteraction == "BANKFRAME" then
+                        self.hooks[BankFrame].Show(BankFrame)
+                end
+        end
 
-	function bank:PostClose()
-		self.hooks[BankFrame].Hide(BankFrame)
-		CloseBankFrame()
-	end
+        function bank:PostClose()
+                local interaction = self.activeInteraction or addon:GetInteractingWindow()
+                self.activeInteraction = nil
+                if interaction == "BANKFRAME" then
+                        self.hooks[BankFrame].Hide(BankFrame)
+                        CloseBankFrame()
+                elseif (interaction == "PERSONALBANK" or interaction == "REALMBANK") and CloseGuildBankFrame then
+                        CloseGuildBankFrame()
+                end
+        end
 
 	function bank:BankFrameGetRight()
 		return 0

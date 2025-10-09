@@ -31,6 +31,7 @@ local CreateFrame = _G.CreateFrame
 local format = _G.format
 local GetCVarBool = _G.GetCVarBool
 local geterrorhandler = _G.geterrorhandler
+local GuildBankFrame = _G.GuildBankFrame
 local InterfaceOptions_AddCategory = _G.InterfaceOptions_AddCategory
 local LoadAddOn = _G.LoadAddOn
 local next = _G.next
@@ -51,6 +52,36 @@ addon.itemSearch = LibStub("LibItemSearch-1.2-ElvUI")
 --[===[@debug@
 _G[addonName] = addon
 --@end-debug@]===]
+
+local BANK_INTERACTIONS = {
+        BANKFRAME = true,
+        PERSONALBANK = true,
+        REALMBANK = true,
+}
+
+local function GuildBankHasFlag(flag)
+        if not GuildBankFrame then
+                return
+        end
+        local value = GuildBankFrame[flag]
+        if type(value) == "function" then
+                local ok, result = pcall(value, GuildBankFrame)
+                value = ok and result
+        end
+        return value
+end
+
+local function ResolveGuildBankInteraction()
+        if GuildBankHasFlag('IsRealmBank') then
+                return 'REALMBANK'
+        elseif GuildBankHasFlag('IsPersonalBank') then
+                return 'PERSONALBANK'
+        end
+end
+
+function addon:IsBankInteraction(window)
+        return window and BANK_INTERACTIONS[window]
+end
 
 --------------------------------------------------------------------------------
 -- Debug stuff
@@ -153,12 +184,14 @@ function addon:OnEnable()
 	self:RegisterEvent('BANKFRAME_CLOSED', 'UpdateInteractingWindow')
 	self:RegisterEvent('MAIL_SHOW', 'UpdateInteractingWindow')
 	self:RegisterEvent('MAIL_CLOSED', 'UpdateInteractingWindow')
-	self:RegisterEvent('MERCHANT_SHOW', 'UpdateInteractingWindow')
-	self:RegisterEvent('MERCHANT_CLOSED', 'UpdateInteractingWindow')
-	self:RegisterEvent('AUCTION_HOUSE_SHOW', 'UpdateInteractingWindow')
-	self:RegisterEvent('AUCTION_HOUSE_CLOSED', 'UpdateInteractingWindow')
-	self:RegisterEvent('TRADE_SHOW', 'UpdateInteractingWindow')
-	self:RegisterEvent('TRADE_CLOSED', 'UpdateInteractingWindow')
+        self:RegisterEvent('MERCHANT_SHOW', 'UpdateInteractingWindow')
+        self:RegisterEvent('MERCHANT_CLOSED', 'UpdateInteractingWindow')
+        self:RegisterEvent('AUCTION_HOUSE_SHOW', 'UpdateInteractingWindow')
+        self:RegisterEvent('AUCTION_HOUSE_CLOSED', 'UpdateInteractingWindow')
+        self:RegisterEvent('TRADE_SHOW', 'UpdateInteractingWindow')
+        self:RegisterEvent('TRADE_CLOSED', 'UpdateInteractingWindow')
+        self:RegisterEvent('GUILDBANKFRAME_OPENED', 'UpdateInteractingWindow')
+        self:RegisterEvent('GUILDBANKFRAME_CLOSED', 'UpdateInteractingWindow')
 
 	self:SetSortingOrder(self.db.profile.sortingOrder)
 
@@ -420,19 +453,23 @@ end
 
 do
 	local current
-	function addon:UpdateInteractingWindow(event, ...)
-		local new = strmatch(event, '^([_%w]+)_OPEN') or strmatch(event, '^([_%w]+)_SHOW$') or strmatch(event, '^([_%w]+)_UPDATE$')
-		self:Debug('UpdateInteractingWindow', event, current, '=>', new, '|', ...)
-		if new ~= current then
-			local old = current
-			current = new
-			self.atBank = (current == "BANKFRAME")
-			if self.db.profile.virtualStacks.notWhenTrading ~= 0 then
-				self:SendMessage('AdiBags_FiltersChanged', true)
-			end
-			self:SendMessage('AdiBags_InteractingWindowChanged', new, old)
-		end
-	end
+        function addon:UpdateInteractingWindow(event, ...)
+                local new = strmatch(event, '^([_%w]+)_OPEN') or strmatch(event, '^([_%w]+)_SHOW$') or strmatch(event, '^([_%w]+)_UPDATE$')
+                if new == 'GUILDBANKFRAME' then
+                        new = ResolveGuildBankInteraction() or new
+                end
+                self:Debug('UpdateInteractingWindow', event, current, '=>', new, '|', ...)
+                if new ~= current then
+                        local old = current
+                        current = new
+                        self.atBank = addon:IsBankInteraction(current)
+                        if self.db.profile.virtualStacks.notWhenTrading ~= 0 then
+                                self:SendMessage('AdiBags_FiltersChanged', true)
+                        end
+                        self:SendMessage('AdiBags_InteractingWindowChanged', new, old)
+                        self:SendMessage('AdiBags_TimeToCheckAnchorMode')
+                end
+        end
 
 	function addon:GetInteractingWindow()
 		return current
@@ -453,12 +490,12 @@ function addon:ShouldStack(slotData)
 		hintSuffix = ''
 	end
 	local window, unstack = self:GetInteractingWindow(), 0
-	if window then
-		unstack = conf.notWhenTrading
-		if unstack >= 4 and window ~= "BANKFRAME" then
-			return
-		end
-	end
+        if window then
+                unstack = conf.notWhenTrading
+                if unstack >= 4 and not self:IsBankInteraction(window) then
+                        return
+                end
+        end
 	local maxStack = slotData.maxStack or 1
 	if maxStack > 1 then
 		if conf.stackable then
