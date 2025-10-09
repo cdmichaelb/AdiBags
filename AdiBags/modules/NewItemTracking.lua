@@ -19,6 +19,17 @@ local glows = {}
 local frozen = false
 local inventoryScanned = false
 
+local function SetBankAvailability(self, available, event)
+        for name, bag in pairs(bags) do
+                if bag.isBank then
+                        bag.available = available
+                        if available then
+                                self:UpdateBags(bag.bagIds, event)
+                        end
+                end
+        end
+end
+
 function mod:OnInitialize()
 	self.db = addon.db:RegisterNamespace(self.moduleName, {
 		profile = {
@@ -67,22 +78,29 @@ function mod:OnEnable()
 		end
 	end
 
-	self:RegisterMessage('AdiBags_PreFilter')
-	self:RegisterMessage('AdiBags_UpdateButton', 'UpdateButton')
+        self:RegisterMessage('AdiBags_PreFilter')
+        self:RegisterMessage('AdiBags_UpdateButton', 'UpdateButton')
 
-	self:RegisterEvent('UNIT_INVENTORY_CHANGED')
-	self:RegisterEvent('BANKFRAME_OPENED')
-	self:RegisterEvent('BANKFRAME_CLOSED')
-	self:RegisterEvent('EQUIPMENT_SWAP_PENDING')
-	self:RegisterEvent('EQUIPMENT_SWAP_FINISHED')
-	self:RegisterBucketMessage('AdiBags_BagUpdated', 0.2, 'UpdateBags')
-	
-	frozen = true
-	self:ScheduleTimer('FirstUpdate', 2)
+        self:RegisterEvent('UNIT_INVENTORY_CHANGED')
+        self:RegisterEvent('BANKFRAME_OPENED')
+        self:RegisterEvent('BANKFRAME_CLOSED')
+        self:RegisterEvent('EQUIPMENT_SWAP_PENDING')
+        self:RegisterEvent('EQUIPMENT_SWAP_FINISHED')
+        self:RegisterBucketMessage('AdiBags_BagUpdated', 0.2, 'UpdateBags')
+        self:RegisterMessage('AdiBags_InteractingWindowChanged')
 
-	inventoryScanned = false
+        frozen = true
+        self:ScheduleTimer('FirstUpdate', 2)
 
-	addon.filterProto.OnEnable(self)
+        inventoryScanned = false
+
+        local currentWindow = addon:GetInteractingWindow()
+        if currentWindow and currentWindow ~= "BANKFRAME" and addon:IsBankInteraction(currentWindow) then
+                self:UpdateInventory('OnEnable')
+                SetBankAvailability(self, true, 'OnEnable')
+        end
+
+        addon.filterProto.OnEnable(self)
 end
 
 function mod:OnDisable()
@@ -183,23 +201,25 @@ function mod:UNIT_INVENTORY_CHANGED(event, unit)
 end
 
 function mod:BANKFRAME_OPENED(event)
-	self:Debug(event)
-	self:UpdateInventory(event)
-	for name, bag in pairs(bags) do
-		if bag.isBank then
-			bag.available = true
-			self:UpdateBags(bag.bagIds, event)
-		end
-	end
+        self:Debug(event)
+        self:UpdateInventory(event)
+        SetBankAvailability(self, true, event)
 end
 
 function mod:BANKFRAME_CLOSED(event)
-	self:Debug(event)
-	for name, bag in pairs(bags) do
-		if bag.isBank then
-			bag.available = false
-		end
-	end
+        self:Debug(event)
+        SetBankAvailability(self, false, event)
+end
+
+function mod:AdiBags_InteractingWindowChanged(event, new, old)
+        if new and new ~= "BANKFRAME" and addon:IsBankInteraction(new) then
+                self:Debug(event, new)
+                self:UpdateInventory(event)
+                SetBankAvailability(self, true, event)
+        elseif old and old ~= "BANKFRAME" and addon:IsBankInteraction(old) then
+                self:Debug(event, old)
+                SetBankAvailability(self, false, event)
+        end
 end
 
 function mod:EQUIPMENT_SWAP_PENDING(event)
