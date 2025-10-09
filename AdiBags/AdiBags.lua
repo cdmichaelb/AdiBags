@@ -88,6 +88,18 @@ local BANK_INTERACTIONS = {
         REALMBANK = true,
 }
 
+local function GuildBankHasFlag(flag)
+        if not GuildBankFrame then
+                return
+        end
+        local value = GuildBankFrame[flag]
+        if type(value) == "function" then
+                local ok, result = pcall(value, GuildBankFrame)
+                value = ok and result
+        end
+        return value
+end
+
 local function IsBankInteraction(window)
         return window and BANK_INTERACTIONS[window]
 end

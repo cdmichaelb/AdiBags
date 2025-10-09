@@ -59,13 +59,13 @@ do
 		end
 	end
 
-	function IterateBuiltInContainers()
-		if addon:GetInteractingWindow() == "BANKFRAME" then
-			return iter, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS, -1
-		else
-			return iter, NUM_BAG_SLOTS, -1
-		end
-	end
+        function IterateBuiltInContainers()
+                if addon:IsBankInteraction(addon:GetInteractingWindow()) then
+                        return iter, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS, -1
+                else
+                        return iter, NUM_BAG_SLOTS, -1
+                end
+        end
 end
 
 function addon:GetContainerFrame(id, spawn)
