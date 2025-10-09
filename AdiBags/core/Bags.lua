@@ -27,6 +27,8 @@ local _G = _G
 local BankFrame = _G.BankFrame
 local CloseBankFrame = _G.CloseBankFrame
 local CloseGuildBankFrame = _G.CloseGuildBankFrame
+local ClosePlayerBankFrame = _G.ClosePlayerBankFrame or _G.ClosePlayerBank
+local ClosePlayerStorageFrame = _G.ClosePlayerStorageFrame or _G.ClosePlayerStorage
 local ipairs = _G.ipairs
 local pairs = _G.pairs
 local setmetatable = _G.setmetatable
@@ -277,6 +279,18 @@ do
                 if interaction == "BANKFRAME" then
                         self.hooks[BankFrame].Hide(BankFrame)
                         CloseBankFrame()
+                elseif interaction == "PLAYER_BANK" then
+                        if ClosePlayerBankFrame then
+                                ClosePlayerBankFrame()
+                        elseif CloseGuildBankFrame then
+                                CloseGuildBankFrame()
+                        end
+                elseif interaction == "PLAYER_STORAGE" then
+                        if ClosePlayerStorageFrame then
+                                ClosePlayerStorageFrame()
+                        elseif CloseGuildBankFrame then
+                                CloseGuildBankFrame()
+                        end
                 elseif (interaction == "PERSONALBANK" or interaction == "REALMBANK") and CloseGuildBankFrame then
                         CloseGuildBankFrame()
                 end
