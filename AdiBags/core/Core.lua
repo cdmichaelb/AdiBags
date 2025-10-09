@@ -57,6 +57,17 @@ local BANK_INTERACTIONS = {
         BANKFRAME = true,
         PERSONALBANK = true,
         REALMBANK = true,
+        PLAYER_BANK = true,
+        PLAYER_STORAGE = true,
+}
+
+local INTERACTION_ALIASES = {
+        PLAYERBANK = 'PLAYER_BANK',
+        PLAYERBANKFRAME = 'PLAYER_BANK',
+        PLAYER_BANKFRAME = 'PLAYER_BANK',
+        PLAYERSTORAGE = 'PLAYER_STORAGE',
+        PLAYERSTORAGEFRAME = 'PLAYER_STORAGE',
+        PLAYER_STORAGEFRAME = 'PLAYER_STORAGE',
 }
 
 local function GuildBankHasFlag(flag)
@@ -71,11 +82,19 @@ local function GuildBankHasFlag(flag)
         return value
 end
 
-local function ResolveGuildBankInteraction()
-        if GuildBankHasFlag('IsRealmBank') then
-                return 'REALMBANK'
-        elseif GuildBankHasFlag('IsPersonalBank') then
-                return 'PERSONALBANK'
+local function ResolveGuildBankInteraction(isOpen, current)
+        if isOpen then
+                if GuildBankHasFlag('IsRealmBank') then
+                        return 'REALMBANK'
+                elseif GuildBankHasFlag('IsPersonalBank') then
+                        return 'PERSONALBANK'
+                elseif GuildBankHasFlag('IsPlayerBank') then
+                        return 'PLAYER_BANK'
+                elseif GuildBankHasFlag('IsPlayerStorage') then
+                        return 'PLAYER_STORAGE'
+                end
+        elseif current and BANK_INTERACTIONS[current] then
+                return current
         end
 end
 
@@ -192,6 +211,22 @@ function addon:OnEnable()
         self:RegisterEvent('TRADE_CLOSED', 'UpdateInteractingWindow')
         self:RegisterEvent('GUILDBANKFRAME_OPENED', 'UpdateInteractingWindow')
         self:RegisterEvent('GUILDBANKFRAME_CLOSED', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_STORAGE_OPEN', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_STORAGE_OPENED', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_STORAGE_SHOW', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_STORAGE_CLOSE', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_STORAGE_CLOSED', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_STORAGE_HIDE', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYERSTORAGE_OPEN', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYERSTORAGE_CLOSE', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_BANK_OPEN', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_BANK_OPENED', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_BANK_SHOW', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_BANK_CLOSE', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_BANK_CLOSED', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYER_BANK_HIDE', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYERBANK_OPEN', 'UpdateInteractingWindow')
+        self:RegisterEvent('PLAYERBANK_CLOSE', 'UpdateInteractingWindow')
 
 	self:SetSortingOrder(self.db.profile.sortingOrder)
 
@@ -452,12 +487,41 @@ end
 --------------------------------------------------------------------------------
 
 do
-	local current
+        local current
+        local suffixStates = {
+                OPEN = true,
+                OPENED = true,
+                SHOW = true,
+                UPDATE = true,
+                CLOSE = false,
+                CLOSED = false,
+                HIDE = false,
+        }
+        local guildBankStates = {
+                PERSONALBANK = true,
+                REALMBANK = true,
+                PLAYER_BANK = true,
+                PLAYER_STORAGE = true,
+        }
+
         function addon:UpdateInteractingWindow(event, ...)
-                local new = strmatch(event, '^([_%w]+)_OPEN') or strmatch(event, '^([_%w]+)_SHOW$') or strmatch(event, '^([_%w]+)_UPDATE$')
-                if new == 'GUILDBANKFRAME' then
-                        new = ResolveGuildBankInteraction() or new
+                local window, suffix = strmatch(event, '^([_%w]+)_([A-Z]+)$')
+                local isOpen = suffix and suffixStates[suffix]
+                if isOpen == nil then
+                        return
                 end
+
+                if window == 'GUILDBANKFRAME' then
+                        window = ResolveGuildBankInteraction(isOpen, current) or window
+                else
+                        window = INTERACTION_ALIASES[window] or window
+                end
+
+                if not isOpen and window == 'GUILDBANKFRAME' and current and guildBankStates[current] then
+                        window = current
+                end
+
+                local new = isOpen and window or nil
                 self:Debug('UpdateInteractingWindow', event, current, '=>', new, '|', ...)
                 if new ~= current then
                         local old = current
@@ -471,9 +535,9 @@ do
                 end
         end
 
-	function addon:GetInteractingWindow()
-		return current
-	end
+        function addon:GetInteractingWindow()
+                return current
+        end
 end
 
 --------------------------------------------------------------------------------
