@@ -27,13 +27,16 @@ local _G = _G
 local BankFrame = _G.BankFrame
 local CloseBankFrame = _G.CloseBankFrame
 local CloseGuildBankFrame = _G.CloseGuildBankFrame
+local GuildBankFrame = _G.GuildBankFrame
 local ClosePlayerBankFrame = _G.ClosePlayerBankFrame or _G.ClosePlayerBank
 local ClosePlayerStorageFrame = _G.ClosePlayerStorageFrame or _G.ClosePlayerStorage
 local ipairs = _G.ipairs
 local pairs = _G.pairs
+local pcall = _G.pcall
 local setmetatable = _G.setmetatable
 local tinsert = _G.tinsert
 local tsort = _G.table.sort
+local type = _G.type
 --GLOBALS>
 
 local hookedBags = addon.hookedBags
@@ -223,24 +226,59 @@ end
 --------------------------------------------------------------------------------
 
 do
-	local bank = addon:NewBag("Bank", 20, true, 'AceHook-3.0')
+        local bank = addon:NewBag("Bank", 20, true, 'AceHook-3.0')
 
-	local UIHider = CreateFrame("Frame")
-	UIHider:Hide()
+        local UIHider = CreateFrame("Frame")
+        UIHider:Hide()
 
-	local function NOOP() end
+        local function NOOP() end
 
-	function bank:PostEnable()
-		self:RegisterMessage('AdiBags_InteractingWindowChanged')
+        local GUILDBANK_INTERACTIONS = {
+                PERSONALBANK = true,
+                REALMBANK = true,
+                PLAYER_BANK = true,
+                PLAYER_STORAGE = true,
+        }
 
-		self:RawHookScript(BankFrame, "OnEvent", NOOP, true)
-		self:RawHookScript(BankFrame, "OnShow", NOOP, true)
-		self:RawHookScript(BankFrame, "OnHide", NOOP, true)
-		self:RawHook(BankFrame, "GetRight", "BankFrameGetRight", true)
-		self:Hook(BankFrame, "Show", "Open", true)
-		self:Hook(BankFrame, "Hide", "Close", true)
+        local function GuildBankHasFlag(flag)
+                if not GuildBankFrame then
+                        return
+                end
+                local value = GuildBankFrame[flag]
+                if type(value) == "function" then
+                        local ok, result = pcall(value, GuildBankFrame)
+                        value = ok and result
+                end
+                return value
+        end
 
-		BankFrame:SetParent(UIHider)
+        local function ShouldHandleGuildBank()
+                return GuildBankHasFlag('IsRealmBank')
+                        or GuildBankHasFlag('IsPersonalBank')
+                        or GuildBankHasFlag('IsPlayerBank')
+                        or GuildBankHasFlag('IsPlayerStorage')
+        end
+
+        local function IsGuildBankInteraction(interaction)
+                return interaction and GUILDBANK_INTERACTIONS[interaction]
+        end
+
+        function bank:PostEnable()
+                self:RegisterMessage('AdiBags_InteractingWindowChanged')
+
+                self:RawHookScript(BankFrame, "OnEvent", NOOP, true)
+                self:RawHookScript(BankFrame, "OnShow", NOOP, true)
+                self:RawHookScript(BankFrame, "OnHide", NOOP, true)
+                self:RawHook(BankFrame, "GetRight", "BankFrameGetRight", true)
+                self:Hook(BankFrame, "Show", "Open", true)
+                self:Hook(BankFrame, "Hide", "Close", true)
+
+                BankFrame:SetParent(UIHider)
+
+                if GuildBankFrame then
+                        self.guildBankOriginalParent = GuildBankFrame:GetParent()
+                        self:HookScript(GuildBankFrame, "OnShow", "GuildBankFrameOnShow")
+                end
 
                 if addon:IsBankInteraction(addon:GetInteractingWindow()) then
                         self:Open()
@@ -248,11 +286,12 @@ do
         end
 
         function bank:PostDisable()
-		if addon:GetInteractingWindow() == "BANKFRAME" then
-			self.hooks[BankFrame].Show(BankFrame)
-		end
-		BankFrame:SetParent(UIParent)
-	end
+                if addon:GetInteractingWindow() == "BANKFRAME" then
+                        self.hooks[BankFrame].Show(BankFrame)
+                end
+                BankFrame:SetParent(UIParent)
+                self:RestoreGuildBank()
+        end
 
         function bank:AdiBags_InteractingWindowChanged(event, new, old)
                 if addon:IsBankInteraction(new) and not self:IsOpen() then
@@ -270,6 +309,8 @@ do
                 self.activeInteraction = addon:GetInteractingWindow()
                 if self.activeInteraction == "BANKFRAME" then
                         self.hooks[BankFrame].Show(BankFrame)
+                elseif IsGuildBankInteraction(self.activeInteraction) then
+                        self:EnsureGuildBankHidden()
                 end
         end
 
@@ -285,20 +326,60 @@ do
                         elseif CloseGuildBankFrame then
                                 CloseGuildBankFrame()
                         end
+                        self:RestoreGuildBank()
                 elseif interaction == "PLAYER_STORAGE" then
                         if ClosePlayerStorageFrame then
                                 ClosePlayerStorageFrame()
                         elseif CloseGuildBankFrame then
                                 CloseGuildBankFrame()
                         end
-                elseif (interaction == "PERSONALBANK" or interaction == "REALMBANK") and CloseGuildBankFrame then
-                        CloseGuildBankFrame()
+                        self:RestoreGuildBank()
+                elseif interaction == "PERSONALBANK" or interaction == "REALMBANK" then
+                        if CloseGuildBankFrame then
+                                CloseGuildBankFrame()
+                        end
+                        self:RestoreGuildBank()
                 end
         end
 
-	function bank:BankFrameGetRight()
-		return 0
-	end
+        function bank:BankFrameGetRight()
+                return 0
+        end
+
+        function bank:EnsureGuildBankHidden()
+                if not GuildBankFrame or not ShouldHandleGuildBank() then
+                        return
+                end
+                if not self.guildBankOriginalParent or self.guildBankOriginalParent == UIHider then
+                        self.guildBankOriginalParent = GuildBankFrame:GetParent()
+                end
+                if GuildBankFrame:GetParent() ~= UIHider then
+                        GuildBankFrame:SetParent(UIHider)
+                end
+                if GuildBankFrame:IsShown() then
+                        GuildBankFrame:Hide()
+                end
+                self.guildBankHidden = true
+        end
+
+        function bank:RestoreGuildBank()
+                if not GuildBankFrame or not self.guildBankHidden then
+                        return
+                end
+                GuildBankFrame:SetParent(self.guildBankOriginalParent or UIParent)
+                self.guildBankHidden = nil
+        end
+
+        function bank:GuildBankFrameOnShow(frame)
+                if IsGuildBankInteraction(addon:GetInteractingWindow()) or ShouldHandleGuildBank() then
+                        self:EnsureGuildBankHidden()
+                        if self:IsEnabled() and not self:IsOpen() then
+                                self:Open()
+                        end
+                elseif self.guildBankHidden then
+                        self:RestoreGuildBank()
+                end
+        end
 
 end
 
