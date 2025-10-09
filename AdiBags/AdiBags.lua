@@ -657,9 +657,9 @@ do
 	function addon:UpdateInteractingWindow(event, ...)
                 local new = strmatch(event, '^([_%w]+)_OPENED$') or strmatch(event, '^([_%w]+)_SHOW$')
                 if new == "GUILDBANKFRAME" and GuildBankFrame then
-                        if GuildBankHasFlag('IsRealmBank') then
+                        if GuildBankFrame.IsRealmBank and GuildBankFrame:IsRealmBank() then
                                 new = "REALMBANK"
-                        elseif GuildBankHasFlag('IsPersonalBank') then
+                        elseif GuildBankFrame.IsPersonalBank and GuildBankFrame:IsPersonalBank() then
                                 new = "PERSONALBANK"
                         end
                 end
