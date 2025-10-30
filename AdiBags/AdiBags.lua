@@ -12,16 +12,11 @@ local _G = _G
 local assert = _G.assert
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER
 local BankFrame = _G.BankFrame
-local GuildBankFrame = _G.GuildBankFrame
 local BANK_CONTAINER = _G.BANK_CONTAINER
 local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local CloseBankFrame = _G.CloseBankFrame
-local CloseGuildBankFrame = _G.CloseGuildBankFrame
-local ClosePlayerBankFrame = _G.ClosePlayerBankFrame or _G.ClosePlayerBank
-local ClosePlayerStorageFrame = _G.ClosePlayerStorageFrame or _G.ClosePlayerStorage
 local ContainerFrame_GenerateFrame = _G.ContainerFrame_GenerateFrame
 local ContainerFrame_GetOpenFrame = _G.ContainerFrame_GetOpenFrame
-local CreateFrame = _G.CreateFrame
 local GetContainerNumSlots = _G.GetContainerNumSlots
 local geterrorhandler = _G.geterrorhandler
 local ipairs = _G.ipairs
@@ -79,45 +74,11 @@ do
 
 	-- All bags
 	local ALL = {}
-        for id in pairs(BAGS) do ALL[id] = id end
-        for id in pairs(BANK) do ALL[id] = id end
+	for id in pairs(BAGS) do ALL[id] = id end
+	for id in pairs(BANK) do ALL[id] = id end
 
-        addon.BAG_IDS = { BAGS = BAGS, BANK = BANK, ALL = ALL }
+	addon.BAG_IDS = { BAGS = BAGS, BANK = BANK, ALL = ALL }
 end
-
-local BANK_INTERACTIONS = {
-        BANKFRAME = true,
-        PERSONALBANK = true,
-        REALMBANK = true,
-        PLAYER_BANK = true,
-        PLAYER_STORAGE = true,
-}
-
-local INTERACTION_ALIASES = {
-        PLAYERBANK = "PLAYER_BANK",
-        PLAYERBANKFRAME = "PLAYER_BANK",
-        PLAYER_BANKFRAME = "PLAYER_BANK",
-        PLAYERSTORAGE = "PLAYER_STORAGE",
-        PLAYERSTORAGEFRAME = "PLAYER_STORAGE",
-        PLAYER_STORAGEFRAME = "PLAYER_STORAGE",
-}
-
-local function GuildBankHasFlag(flag)
-        if not GuildBankFrame then
-                return
-        end
-        local value = GuildBankFrame[flag]
-        if type(value) == "function" then
-                local ok, result = pcall(value, GuildBankFrame)
-                value = ok and result
-        end
-        return value
-end
-
-local function IsBankInteraction(window)
-        return window and BANK_INTERACTIONS[window]
-end
-addon.IsBankInteraction = IsBankInteraction
 
 local FAMILY_TAGS = {
 --@noloc[[
@@ -304,26 +265,10 @@ function addon:OnEnable()
 	self:RegisterEvent('MERCHANT_CLOSED', 'UpdateInteractingWindow')
 	self:RegisterEvent('AUCTION_HOUSE_SHOW', 'UpdateInteractingWindow')
 	self:RegisterEvent('AUCTION_HOUSE_CLOSED', 'UpdateInteractingWindow')
-        self:RegisterEvent('TRADE_SHOW', 'UpdateInteractingWindow')
-        self:RegisterEvent('TRADE_CLOSED', 'UpdateInteractingWindow')
-        self:RegisterEvent('GUILDBANKFRAME_OPENED', 'UpdateInteractingWindow')
-        self:RegisterEvent('GUILDBANKFRAME_CLOSED', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_STORAGE_OPEN', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_STORAGE_OPENED', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_STORAGE_SHOW', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_STORAGE_CLOSE', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_STORAGE_CLOSED', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_STORAGE_HIDE', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYERSTORAGE_OPEN', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYERSTORAGE_CLOSE', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_BANK_OPEN', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_BANK_OPENED', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_BANK_SHOW', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_BANK_CLOSE', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_BANK_CLOSED', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYER_BANK_HIDE', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYERBANK_OPEN', 'UpdateInteractingWindow')
-        self:RegisterEvent('PLAYERBANK_CLOSE', 'UpdateInteractingWindow')
+	self:RegisterEvent('TRADE_SHOW', 'UpdateInteractingWindow')
+	self:RegisterEvent('TRADE_CLOSED', 'UpdateInteractingWindow')
+	self:RegisterEvent('GUILDBANKFRAME_OPENED', 'UpdateInteractingWindow')
+	self:RegisterEvent('GUILDBANKFRAME_CLOSED', 'UpdateInteractingWindow')
 
 	self:SetSortingOrder(self.db.profile.sortingOrder)
 
@@ -560,13 +505,13 @@ do
 		end
 	end
 
-        function IterateBuiltInContainers()
-                if IsBankInteraction(addon:GetInteractingWindow()) then
-                        return iter, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS, -1
-                else
-                        return iter, NUM_BAG_SLOTS, -1
-                end
-        end
+	function IterateBuiltInContainers()
+		if addon:GetInteractingWindow() == "BANKFRAME" then
+			return iter, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS, -1
+		else
+			return iter, NUM_BAG_SLOTS, -1
+		end
+	end
 end
 
 local function GetContainerFrame(id, spawn)
@@ -683,64 +628,25 @@ end
 --------------------------------------------------------------------------------
 
 do
-        local current
-        local suffixStates = {
-                OPEN = true,
-                OPENED = true,
-                SHOW = true,
-                CLOSE = false,
-                CLOSED = false,
-                HIDE = false,
-        }
-        local guildBankStates = {
-                PERSONALBANK = true,
-                REALMBANK = true,
-                PLAYER_BANK = true,
-                PLAYER_STORAGE = true,
-        }
+	local current
+	function addon:UpdateInteractingWindow(event, ...)
+		local new = strmatch(event, '^([_%w]+)_OPENED$') or strmatch(event, '^([_%w]+)_SHOW$')
+		self:Debug('UpdateInteractingWindow', event, current, '=>', new, '|', ...)
+		if new ~= current then
+			local old = current
+			current = new
+			self.atBank = (current == "BANKFRAME")
+			if self.db.profile.virtualStacks.notWhenTrading then
+				self:SendMessage('AdiBags_FiltersChanged', 0)
+			end
+			self:SendMessage('AdiBags_InteractingWindowChanged', new, old)
+			self:SendMessage('AdiBags_TimeToCheckAnchorMode')
+		end
+	end
 
-        function addon:UpdateInteractingWindow(event, ...)
-                local window, suffix = strmatch(event, '^([_%w]+)_([A-Z]+)$')
-                local isOpen = suffix and suffixStates[suffix]
-                if isOpen == nil then
-                        return
-                end
-
-                if window == "GUILDBANKFRAME" then
-                        if isOpen then
-                                if GuildBankHasFlag('IsRealmBank') then
-                                        window = "REALMBANK"
-                                elseif GuildBankHasFlag('IsPersonalBank') then
-                                        window = "PERSONALBANK"
-                                elseif GuildBankHasFlag('IsPlayerBank') then
-                                        window = "PLAYER_BANK"
-                                elseif GuildBankHasFlag('IsPlayerStorage') then
-                                        window = "PLAYER_STORAGE"
-                                end
-                        elseif current and guildBankStates[current] then
-                                window = current
-                        end
-                else
-                        window = INTERACTION_ALIASES[window] or window
-                end
-
-                local new = isOpen and window or nil
-                self:Debug('UpdateInteractingWindow', event, current, '=>', new, '|', ...)
-                if new ~= current then
-                        local old = current
-                        current = new
-                        self.atBank = IsBankInteraction(current)
-                        if self.db.profile.virtualStacks.notWhenTrading then
-                                self:SendMessage('AdiBags_FiltersChanged', 0)
-                        end
-                        self:SendMessage('AdiBags_InteractingWindowChanged', new, old)
-                        self:SendMessage('AdiBags_TimeToCheckAnchorMode')
-                end
-        end
-
-        function addon:GetInteractingWindow()
-                return current
-        end
+	function addon:GetInteractingWindow()
+		return current
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -964,143 +870,46 @@ end
 --------------------------------------------------------------------------------
 
 do
-        -- L["Bank"]
-        local bank = addon:NewBag("Bank", 20, addon.BAG_IDS.BANK, true, 'AceHook-3.0')
+	-- L["Bank"]
+	local bank = addon:NewBag("Bank", 20, addon.BAG_IDS.BANK, true, 'AceHook-3.0')
 
-        local UIHider = CreateFrame("Frame")
-        UIHider:Hide()
+	local function NOOP() end
 
-        local function NOOP() end
+	function bank:PostEnable()
+		self:RegisterMessage('AdiBags_InteractingWindowChanged')
 
-        local GUILDBANK_INTERACTIONS = {
-                PERSONALBANK = true,
-                REALMBANK = true,
-                PLAYER_BANK = true,
-                PLAYER_STORAGE = true,
-        }
+		BankFrame:Hide()
+		self:RawHookScript(BankFrame, "OnEvent", NOOP, true)
+		self:RawHook(BankFrame, "Show", "Open", true)
+		self:RawHook(BankFrame, "Hide", "Close", true)
+		self:RawHook(BankFrame, "IsShown", "IsOpen", true)
 
-        local function ShouldHandleGuildBank()
-                return GuildBankHasFlag('IsRealmBank')
-                        or GuildBankHasFlag('IsPersonalBank')
-                        or GuildBankHasFlag('IsPlayerBank')
-                        or GuildBankHasFlag('IsPlayerStorage')
-        end
+		if addon:GetInteractingWindow() == "BANKFRAME" then
+			self:Open()
+		end
+	end
 
-        local function IsGuildBankInteraction(interaction)
-                return interaction and GUILDBANK_INTERACTIONS[interaction]
-        end
+	function bank:PostDisable()
+		if addon:GetInteractingWindow() == "BANKFRAME" then
+			self.hooks[BankFrame].Show(BankFrame)
+		end
+	end
 
-        function bank:PostEnable()
-                self:RegisterMessage('AdiBags_InteractingWindowChanged')
+	function bank:AdiBags_InteractingWindowChanged(event, new, old)
+		if new == 'BANKFRAME' and not self:IsOpen() then
+			self:Open()
+		elseif old == 'BANKFRAME' and self:IsOpen() then
+			self:Close()
+		end
+	end
 
-                BankFrame:SetParent(UIHider)
-                BankFrame:Hide()
-                self:RawHookScript(BankFrame, "OnEvent", NOOP, true)
-                self:RawHook(BankFrame, "Show", "Open", true)
-                self:RawHook(BankFrame, "Hide", "Close", true)
-                self:RawHook(BankFrame, "IsShown", "IsOpen", true)
+	function bank:CanOpen()
+		return self:IsEnabled() and addon:GetInteractingWindow() == "BANKFRAME"
+	end
 
-                if GuildBankFrame then
-                        self.guildBankOriginalParent = GuildBankFrame:GetParent()
-                        self:HookScript(GuildBankFrame, "OnShow", "GuildBankFrameOnShow")
-                end
-
-                if IsBankInteraction(addon:GetInteractingWindow()) then
-                        self:Open()
-                end
-        end
-
-        function bank:PostDisable()
-                if addon:GetInteractingWindow() == "BANKFRAME" then
-                        self.hooks[BankFrame].Show(BankFrame)
-                end
-                BankFrame:SetParent(UIParent)
-                self:RestoreGuildBank()
-        end
-
-        function bank:AdiBags_InteractingWindowChanged(event, new, old)
-                if IsBankInteraction(new) and not self:IsOpen() then
-                        self:Open()
-                elseif IsBankInteraction(old) and self:IsOpen() then
-                        self:Close()
-                end
-        end
-
-        function bank:CanOpen()
-                return self:IsEnabled() and IsBankInteraction(addon:GetInteractingWindow())
-        end
-
-        function bank:PreOpen()
-                self.activeInteraction = addon:GetInteractingWindow()
-                if self.activeInteraction == "BANKFRAME" then
-                        self.hooks[BankFrame].Show(BankFrame)
-                elseif IsGuildBankInteraction(self.activeInteraction) then
-                        self:EnsureGuildBankHidden()
-                end
-        end
-
-        function bank:PostClose()
-                local interaction = self.activeInteraction or addon:GetInteractingWindow()
-                self.activeInteraction = nil
-                if interaction == "BANKFRAME" then
-                        self.hooks[BankFrame].Hide(BankFrame)
-                        CloseBankFrame()
-                elseif interaction == "PLAYER_BANK" then
-                        if ClosePlayerBankFrame then
-                                ClosePlayerBankFrame()
-                        elseif CloseGuildBankFrame then
-                                CloseGuildBankFrame()
-                        end
-                        self:RestoreGuildBank()
-                elseif interaction == "PLAYER_STORAGE" then
-                        if ClosePlayerStorageFrame then
-                                ClosePlayerStorageFrame()
-                        elseif CloseGuildBankFrame then
-                                CloseGuildBankFrame()
-                        end
-                        self:RestoreGuildBank()
-                elseif interaction == "PERSONALBANK" or interaction == "REALMBANK" then
-                        if CloseGuildBankFrame then
-                                CloseGuildBankFrame()
-                        end
-                        self:RestoreGuildBank()
-                end
-        end
-
-        function bank:EnsureGuildBankHidden()
-                if not GuildBankFrame or not ShouldHandleGuildBank() then
-                        return
-                end
-                if not self.guildBankOriginalParent or self.guildBankOriginalParent == UIHider then
-                        self.guildBankOriginalParent = GuildBankFrame:GetParent()
-                end
-                if GuildBankFrame:GetParent() ~= UIHider then
-                        GuildBankFrame:SetParent(UIHider)
-                end
-                if GuildBankFrame:IsShown() then
-                        GuildBankFrame:Hide()
-                end
-                self.guildBankHidden = true
-        end
-
-        function bank:RestoreGuildBank()
-                if not GuildBankFrame or not self.guildBankHidden then
-                        return
-                end
-                GuildBankFrame:SetParent(self.guildBankOriginalParent or UIParent)
-                self.guildBankHidden = nil
-        end
-
-        function bank:GuildBankFrameOnShow(frame)
-                if IsGuildBankInteraction(addon:GetInteractingWindow()) or ShouldHandleGuildBank() then
-                        self:EnsureGuildBankHidden()
-                        if self:IsEnabled() and not self:IsOpen() then
-                                self:Open()
-                        end
-                elseif self.guildBankHidden then
-                        self:RestoreGuildBank()
-                end
-        end
+	function bank:PostClose()
+		CloseBankFrame()
+	end
 
 end
 
@@ -1350,13 +1159,13 @@ function addon:ShouldStack(slotData)
 	if not slotData.link then
 		return conf.freeSpace, "*Free*"
 	end
-        local window, unstack = self:GetInteractingWindow(), 0
-        if window then
-                unstack = conf.notWhenTrading
-                if unstack >= 4 and not IsBankInteraction(window) then
-                        return
-                end
-        end
+	local window, unstack = self:GetInteractingWindow(), 0
+	if window then
+		unstack = conf.notWhenTrading
+		if unstack >= 4 and window ~= "BANKFRAME" then
+			return
+		end
+	end
 	local maxStack = slotData.maxStack or 1
 	if maxStack > 1 then
 		if conf.stackable then
