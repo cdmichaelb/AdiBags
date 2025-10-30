@@ -54,40 +54,24 @@ end
 
 local created = false
 function mod:OnEnable()
-        if not created then
-                LibStub('LibDataBroker-1.1'):NewDataObject(addonName, dataobj)
-                created = true
-        end
-        self:RegisterBucketEvent('BAG_UPDATE', 0.5, "Update")
-        self:RegisterEvent('BANKFRAME_OPENED')
-        self:RegisterEvent('BANKFRAME_CLOSED')
-        self:RegisterMessage('AdiBags_InteractingWindowChanged')
-        self.atBank = addon:IsBankInteraction(addon:GetInteractingWindow())
-        self:Update()
+	if not created then
+		LibStub('LibDataBroker-1.1'):NewDataObject(addonName, dataobj)
+		created = true
+	end
+	self:RegisterBucketEvent('BAG_UPDATE', 0.5, "Update")
+	self:RegisterEvent('BANKFRAME_OPENED')
+	self:RegisterEvent('BANKFRAME_CLOSED')
+	self:Update()
 end
 
 function mod:BANKFRAME_OPENED()
-        return self:HandleBankState(true)
+	self.atBank = true
+	return self:Update()
 end
 
 function mod:BANKFRAME_CLOSED()
-        return self:HandleBankState(false)
-end
-
-function mod:AdiBags_InteractingWindowChanged(_, new, old)
-        if addon:IsBankInteraction(new) then
-                self:HandleBankState(true)
-        elseif addon:IsBankInteraction(old) then
-                self:HandleBankState(false)
-        end
-end
-
-function mod:HandleBankState(isOpen)
-        local state = not not isOpen
-        if self.atBank ~= state then
-                self.atBank = state
-                return self:Update()
-        end
+	self.atBank = false
+	return self:Update()
 end
 
 local FAMILY_ORDER = {
