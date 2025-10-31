@@ -15,6 +15,7 @@ local BankFrame = _G.BankFrame
 local BANK_CONTAINER = _G.BANK_CONTAINER
 local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local CloseBankFrame = _G.CloseBankFrame
+local CloseGuildBankFrame = _G.CloseGuildBankFrame
 local ContainerFrame_GenerateFrame = _G.ContainerFrame_GenerateFrame
 local ContainerFrame_GetOpenFrame = _G.ContainerFrame_GetOpenFrame
 local GetContainerNumSlots = _G.GetContainerNumSlots
@@ -505,13 +506,13 @@ do
 		end
 	end
 
-	function IterateBuiltInContainers()
-		if addon:GetInteractingWindow() == "BANKFRAME" then
-			return iter, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS, -1
-		else
-			return iter, NUM_BAG_SLOTS, -1
-		end
-	end
+        function IterateBuiltInContainers()
+                if addon:IsBankInteractingWindow(addon:GetInteractingWindow()) then
+                        return iter, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS, -1
+                else
+                        return iter, NUM_BAG_SLOTS, -1
+                end
+        end
 end
 
 local function GetContainerFrame(id, spawn)
@@ -628,25 +629,48 @@ end
 --------------------------------------------------------------------------------
 
 do
-	local current
-	function addon:UpdateInteractingWindow(event, ...)
-		local new = strmatch(event, '^([_%w]+)_OPENED$') or strmatch(event, '^([_%w]+)_SHOW$')
-		self:Debug('UpdateInteractingWindow', event, current, '=>', new, '|', ...)
-		if new ~= current then
-			local old = current
-			current = new
-			self.atBank = (current == "BANKFRAME")
-			if self.db.profile.virtualStacks.notWhenTrading then
-				self:SendMessage('AdiBags_FiltersChanged', 0)
-			end
-			self:SendMessage('AdiBags_InteractingWindowChanged', new, old)
-			self:SendMessage('AdiBags_TimeToCheckAnchorMode')
-		end
-	end
+       local extraBankWindows = {}
+       addon.extraBankWindows = extraBankWindows
 
-	function addon:GetInteractingWindow()
-		return current
-	end
+       function addon:RegisterBankWindow(name, options)
+               if type(name) ~= "string" or name == "" then return end
+               extraBankWindows[name] = options or true
+       end
+
+       function addon:GetBankWindowOptions(name)
+               return extraBankWindows[name]
+       end
+
+       function addon:IsBankInteractingWindow(name)
+               return name == "BANKFRAME" or not not extraBankWindows[name]
+       end
+end
+
+function addon:ResolveInteractingWindow(event, window, ...)
+       return window
+end
+
+do
+       local current
+       function addon:UpdateInteractingWindow(event, ...)
+               local new = strmatch(event, '^([_%w]+)_OPENED$') or strmatch(event, '^([_%w]+)_SHOW$')
+               new = self:ResolveInteractingWindow(event, new, ...)
+               self:Debug('UpdateInteractingWindow', event, current, '=>', new, '|', ...)
+               if new ~= current then
+                       local old = current
+                       current = new
+                       self.atBank = self:IsBankInteractingWindow(current)
+                       if self.db.profile.virtualStacks.notWhenTrading then
+                               self:SendMessage('AdiBags_FiltersChanged', 0)
+                       end
+                       self:SendMessage('AdiBags_InteractingWindowChanged', new, old)
+                       self:SendMessage('AdiBags_TimeToCheckAnchorMode')
+               end
+       end
+
+       function addon:GetInteractingWindow()
+               return current
+       end
 end
 
 --------------------------------------------------------------------------------
@@ -870,46 +894,79 @@ end
 --------------------------------------------------------------------------------
 
 do
-	-- L["Bank"]
-	local bank = addon:NewBag("Bank", 20, addon.BAG_IDS.BANK, true, 'AceHook-3.0')
+       -- L["Bank"]
+       local bank = addon:NewBag("Bank", 20, addon.BAG_IDS.BANK, true, 'AceHook-3.0')
 
-	local function NOOP() end
+       local function NOOP() end
 
-	function bank:PostEnable()
-		self:RegisterMessage('AdiBags_InteractingWindowChanged')
+       function bank:PostEnable()
+               self:RegisterMessage('AdiBags_InteractingWindowChanged')
 
-		BankFrame:Hide()
-		self:RawHookScript(BankFrame, "OnEvent", NOOP, true)
-		self:RawHook(BankFrame, "Show", "Open", true)
-		self:RawHook(BankFrame, "Hide", "Close", true)
-		self:RawHook(BankFrame, "IsShown", "IsOpen", true)
+               BankFrame:Hide()
+               self:RawHookScript(BankFrame, "OnEvent", NOOP, true)
+               self:RawHook(BankFrame, "Show", "Open", true)
+               self:RawHook(BankFrame, "Hide", "Close", true)
+               self:RawHook(BankFrame, "IsShown", "IsOpen", true)
 
-		if addon:GetInteractingWindow() == "BANKFRAME" then
-			self:Open()
-		end
-	end
+               local window = addon:GetInteractingWindow()
+               if addon:IsBankInteractingWindow(window) then
+                       self.lastBankWindow = window
+                       self:Open()
+               end
+       end
 
-	function bank:PostDisable()
-		if addon:GetInteractingWindow() == "BANKFRAME" then
-			self.hooks[BankFrame].Show(BankFrame)
-		end
-	end
+       function bank:PostDisable()
+               local window = addon:GetInteractingWindow()
+               if window == "BANKFRAME" then
+                       self.hooks[BankFrame].Show(BankFrame)
+               end
+       end
 
-	function bank:AdiBags_InteractingWindowChanged(event, new, old)
-		if new == 'BANKFRAME' and not self:IsOpen() then
-			self:Open()
-		elseif old == 'BANKFRAME' and self:IsOpen() then
-			self:Close()
-		end
-	end
+       function bank:AdiBags_InteractingWindowChanged(event, new, old)
+               if addon:IsBankInteractingWindow(new) and not self:IsOpen() then
+                       self.lastBankWindow = new
+                       self:Open()
+               elseif addon:IsBankInteractingWindow(old) and self:IsOpen() then
+                       self.lastBankWindow = old
+                       self:Close()
+               end
+       end
 
-	function bank:CanOpen()
-		return self:IsEnabled() and addon:GetInteractingWindow() == "BANKFRAME"
-	end
+       function bank:CanOpen()
+               return self:IsEnabled() and addon:IsBankInteractingWindow(addon:GetInteractingWindow())
+       end
 
-	function bank:PostClose()
-		CloseBankFrame()
-	end
+       function bank:PreOpen()
+               local window = addon:GetInteractingWindow()
+               if window then
+                       self.lastBankWindow = window
+               end
+               if window == "BANKFRAME" and self.hooks and self.hooks[BankFrame] then
+                       self.hooks[BankFrame].Show(BankFrame)
+               end
+       end
+
+       function bank:PostClose()
+               local window = self.lastBankWindow or addon:GetInteractingWindow()
+               if window == "BANKFRAME" then
+                       if self.hooks and self.hooks[BankFrame] then
+                               self.hooks[BankFrame].Hide(BankFrame)
+                       end
+                       CloseBankFrame()
+               elseif window then
+                       local info = addon:GetBankWindowOptions(window)
+                       if type(info) == "table" then
+                               if info.close then
+                                       info.close()
+                               elseif info.postClose then
+                                       info.postClose()
+                               end
+                       elseif info and CloseGuildBankFrame then
+                               CloseGuildBankFrame()
+                       end
+               end
+               self.lastBankWindow = nil
+       end
 
 end
 
@@ -1160,12 +1217,12 @@ function addon:ShouldStack(slotData)
 		return conf.freeSpace, "*Free*"
 	end
 	local window, unstack = self:GetInteractingWindow(), 0
-	if window then
-		unstack = conf.notWhenTrading
-		if unstack >= 4 and window ~= "BANKFRAME" then
-			return
-		end
-	end
+        if window then
+                unstack = conf.notWhenTrading
+                if unstack >= 4 and not self:IsBankInteractingWindow(window) then
+                        return
+                end
+        end
 	local maxStack = slotData.maxStack or 1
 	if maxStack > 1 then
 		if conf.stackable then
